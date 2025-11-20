@@ -29,7 +29,7 @@
 struct Command commands[] =
 {
 		//TODO: LAB2 Hands-on: add the commands here================
-
+        // hello
 
 		//==========================================================
 
