@@ -904,8 +904,46 @@ void* create_user_kern_stack(uint32* ptr_user_page_directory)
 	//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #1 create_user_kern_stack
 	//Your code is here
 	//Comment the following line
-	panic("create_user_kern_stack() is not implemented yet...!!");
+	//panic("create_user_kern_stack() is not implemented yet...!!");
+	// Calculate total size needed (stack + guard page)
+	    uint32 total_size = KERNEL_STACK_SIZE + PAGE_SIZE;
 
+	    // Allocate contiguous space in kernel heap
+	    void* stack_space = kmalloc(total_size);
+	    if (stack_space == NULL) {
+	        panic("create_user_kern_stack(): Failed to allocate kernel stack memory");
+	    }
+
+	    // Clear the entire allocated space
+	    memset(stack_space, 0, total_size);
+
+	    // The stack starts after the guard page
+	    void* stack_start = (void*)((uint32)stack_space + PAGE_SIZE);
+
+	    // Map each page of the kernel stack (except guard page)
+	    for (int i = 0; i < (KERNEL_STACK_SIZE / PAGE_SIZE); i++) {
+	        void* current_va = (void*)((uint32)stack_start + i * PAGE_SIZE);
+	        struct FrameInfo* frame = allocate_frame(0);
+
+	        if (frame == NULL) {
+	            panic("create_user_kern_stack(): Failed to allocate frame");
+	        }
+
+	        // Map with kernel permissions (no user access)
+	        int result = map_frame(ptr_user_page_directory, frame, current_va, PERM_PRESENT | PERM_WRITEABLE);
+	        if (result != 0) {
+	            panic("create_user_kern_stack(): Failed to map frame");
+	        }
+		struct Env* curenv;
+	        // Use given function to add this page to page file and initialize by zeros
+	        int pf_result = pf_add_empty_env_page(curenv, (uint32)current_va, 1);
+	        if (pf_result == E_NO_PAGE_FILE_SPACE) {
+	            panic("create_user_kern_stack(): No page file space");
+	        }
+	    }
+
+	    // Return pointer to start of allocated space (including guard page)
+	    return stack_space;
 	//allocate space for the user kernel stack.
 	//remember to leave its bottom page as a GUARD PAGE (i.e. not mapped)
 	//return a pointer to the start of the allocated space (including the GUARD PAGE)

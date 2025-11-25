@@ -165,6 +165,30 @@ void fault_handler(struct Trapframe *tf)
 			//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #2 Check for invalid pointers
 			//(e.g. pointing to unmarked user heap page, kernel or wrong access rights),
 			//your code is here
+			// 1. Check if pointing to kernel space
+			if (fault_va >= KERNEL_BASE) {
+			    env_exit(faulted_env);
+			    return;
+			}
+
+			// 2. Check if pointing to unmarked user heap page
+			if (fault_va >= USER_HEAP_START) {
+			    uint32* pte = get_pte(faulted_env->env_page_directory, (void*)fault_va, 0);
+			    if (pte == NULL || (*pte & PERM_UHPAGE) == 0) {
+			        env_exit(faulted_env);
+			        return;
+			    }
+			}
+
+			// 3. Check for wrong access rights (write to read-only page)
+			uint32 error_code = tf->tf_err;
+			if (error_code & FEC_WR) {
+			    uint32* pte = get_pte(faulted_env->env_page_directory, (void*)fault_va, 0);
+			    if (pte != NULL && (*pte & PERM_WRITEABLE) == 0) {
+			        env_exit(faulted_env);
+			        return;
+			    }
+			}
 
 			/*============================================================================================*/
 		}
@@ -258,7 +282,43 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 		//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #3 placement
 		//Your code is here
 		//Comment the following line
-		panic("page_fault_handler().PLACEMENT is not implemented yet...!!");
+		//panic("page_fault_handler().PLACEMENT is not implemented yet...!!");
+		struct Env* curenv;
+		// STEP 1:
+		struct FrameInfo *place_ptr=NULL;
+					int result=allocate_frame(&place_ptr);
+					if(result !=E_NO_MEM){
+						map_frame(curenv->env_page_directory,place_ptr,fault_va,PERM_USER|PERM_WRITEABLE);
+					}
+					else{
+						cprintf("NO_MEM");
+					}
+					//step_2
+					int ret = pf_read_env_page(curenv,(void *)fault_va);
+					if(ret ==E_PAGE_NOT_EXIST_IN_PF){
+						if((fault_va>=USTACKBOTTOM && fault_va<USTACKTOP) || (fault_va>=USER_HEAP_START && fault_va<USER_HEAP_MAX))
+						{
+
+						}
+						else{
+
+							cprintf("here_4");
+							sched_kill_env(curenv->env_id);
+
+						}
+
+					 }// if ret
+					  struct WorkingSetElement *add_element=env_page_ws_list_create_element(curenv,fault_va);
+					  if (add_element==NULL)
+						  sched_kill_env(curenv->env_id);
+					  LIST_INSERT_TAIL(&curenv->page_WS_list,add_element); //add
+
+					  if(LIST_SIZE(&curenv->page_WS_list)<curenv->page_WS_max_size)//update
+						  curenv->page_last_WS_element=NULL;
+					  else{
+						curenv->page_last_WS_element=LIST_FIRST(&curenv->page_WS_list);
+					  }
+
 	}
 	else
 	{
