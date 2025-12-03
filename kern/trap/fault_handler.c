@@ -263,9 +263,119 @@ void table_fault_handler(struct Env * curenv, uint32 fault_va)
 int get_optimal_num_faults(struct WS_List *initWorkingSet, int maxWSSize, struct PageRef_List *pageReferences)
 {
 	//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #2 get_optimal_num_faults
-	//Your code is here
-	//Comment the following line
-	panic("get_optimal_num_faults() is not implemented yet...!!");
+	// IMPORTANT: This function SHOULD NOT change any of the given lists
+#if !USE_KHEAP
+	panic("get_optimal_num_faults(): requires USE_KHEAP");
+	return 0;
+#else
+	if (LIST_SIZE(pageReferences) == 0)
+		return 0;
+	uint32 numRefs = LIST_SIZE(pageReferences);
+	uint32 *refs = (uint32 *)kmalloc(numRefs * sizeof(uint32));
+	if (refs == NULL)
+		panic("get_optimal_num_faults(): can't allocate refs array");
+
+	uint32 r = 0;
+	struct PageRefElement *refElm = NULL;
+	LIST_FOREACH(refElm, pageReferences)
+	{
+		if (r >= numRefs)
+			break;
+		refs[r++] = ROUNDDOWN(refElm->virtual_address, PAGE_SIZE);
+	}
+	numRefs = r;
+	uint32 *ws_pages = (uint32 *)kmalloc(maxWSSize * sizeof(uint32));
+	uint8 *ws_valid = (uint8 *)kmalloc(maxWSSize * sizeof(uint8));
+	if (ws_pages == NULL || ws_valid == NULL)
+		panic("get_optimal_num_faults(): can't allocate WS arrays");
+	for (int i = 0; i < maxWSSize; i++)
+	{
+		ws_pages[i] = 0;
+		ws_valid[i] = 0;
+	}
+	int curSize = 0;
+	struct WorkingSetElement *wse = NULL;
+	LIST_FOREACH(wse, initWorkingSet)
+	{
+		if (curSize >= maxWSSize)
+			break;
+		ws_pages[curSize] = ROUNDDOWN(wse->virtual_address, PAGE_SIZE);
+		ws_valid[curSize] = 1;
+		curSize++;
+	}
+	int faults = 0;
+	for (uint32 i = 0; i < numRefs; i++)
+	{
+		uint32 va = refs[i];
+		int hit = 0;
+		for (int j = 0; j < maxWSSize; j++)
+		{
+			if (ws_valid[j] && ws_pages[j] == va)
+			{
+				hit = 1;
+				break;
+			}
+		}
+		if (hit)
+			continue;
+		faults++;
+		if (curSize < maxWSSize)
+		{
+			for (int j = 0; j < maxWSSize; j++)
+			{
+				if (!ws_valid[j])
+				{
+					ws_valid[j] = 1;
+					ws_pages[j] = va;
+					curSize++;
+					break;
+				}
+			}
+		}
+		else
+		{
+			int victimIndex = -1;
+			int farthestUse = -1;
+
+			for (int j = 0; j < maxWSSize; j++)
+			{
+				uint32 pageVa = ws_pages[j];
+				int nextUse = -1;
+				// search for next use of this page in remaining references
+				for (uint32 k = i + 1; k < numRefs; k++)
+				{
+					if (refs[k] == pageVa)
+					{
+						nextUse = (int)k;
+						break;
+					}
+				}
+				// If page is never used again, it is the best victim
+				if (nextUse == -1)
+				{
+					victimIndex = j;
+					break;
+				}
+	// Else, choose the one with the farthest next use
+				if (nextUse > farthestUse)
+				{
+					farthestUse = nextUse;
+					victimIndex = j;
+				}
+			}
+			if (victimIndex < 0)
+				victimIndex = 0;
+			// Replace victim with the new page
+			ws_pages[victimIndex] = va;
+			ws_valid[victimIndex] = 1;
+		}
+	}
+	// 4) Free temporary arrays
+	kfree(refs);
+	kfree(ws_pages);
+	kfree(ws_valid);
+	return faults;
+#endif
 }
 
 void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
@@ -325,16 +435,107 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 		if (isPageReplacmentAlgorithmOPTIMAL())
 		{
 			//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #1 Optimal Reference Stream
-			//Your code is here
-			//Comment the following line
-			panic("page_fault_handler().REPLACEMENT is not implemented yet...!!");
+          #if USE_KHEAP
+			// Allocate a new reference element and append it to the stream list
+			struct PageRefElement *ref_elem = kmalloc(sizeof(struct PageRefElement));
+			if (ref_elem == NULL)
+			{
+				panic("page_fault_handler(): Failed to allocate PageRefElement");
+			}
+			// Store the faulting page virtual address (page-aligned)
+			ref_elem->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+
+			// Append to the tail of the reference stream list of this environment
+			LIST_INSERT_TAIL(&(faulted_env->referenceStreamList), ref_elem);
+          #endif
 		}
-		else if (isPageReplacmentAlgorithmOPTIMAL())
+		else if (isPageReplacmentAlgorithmCLOCK())
 		{
 			//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #3 Clock Replacement
-			//Your code is here
-			//Comment the following line
-			panic("page_fault_handler().REPLACEMENT is not implemented yet...!!");
+        #if USE_KHEAP
+            if (faulted_env->page_last_WS_element == NULL)
+			{
+				faulted_env->page_last_WS_element = LIST_FIRST(&(faulted_env->page_WS_list));
+			}
+			struct WorkingSetElement *hand = faulted_env->page_last_WS_element;
+			if (hand == NULL)
+			{
+				panic("CLOCK: empty working set while wsSize is full");
+			}
+			struct WorkingSetElement *start = hand;
+
+			while (1)
+			{
+				uint32 va = hand->virtual_address;
+				int perms = pt_get_page_permissions(faulted_env->env_page_directory, va);
+
+				if ((perms & PERM_USED) == 0)
+				{
+					victimWSElement = hand;
+					break;
+				}
+				else
+				{
+					pt_set_page_permissions(faulted_env->env_page_directory, va, 0, PERM_USED);
+
+					hand = LIST_NEXT(hand);
+					if (hand == NULL)
+						hand = LIST_FIRST(&(faulted_env->page_WS_list));
+					if (hand == start)
+					{
+						continue;
+					}
+				}
+			}
+			uint32 victim_va = victimWSElement->virtual_address;
+			int victim_perms = pt_get_page_permissions(faulted_env->env_page_directory, victim_va);
+			uint32 *ptr_page_table = NULL;
+			struct FrameInfo *victim_frame = get_frame_info(faulted_env->env_page_directory, victim_va, &ptr_page_table);
+			if (victim_frame == NULL)
+			{
+				panic("CLOCK: victim frame not found");
+			}
+
+			// If modified, write it back to page file
+			if (victim_perms & PERM_MODIFIED)
+			{
+				pf_update_env_page(faulted_env, victim_va, victim_frame);
+			}
+			unmap_frame(faulted_env->env_page_directory, victim_va);
+
+			// Allocate and map a frame for the faulted page
+			struct FrameInfo *new_frame = NULL;
+			allocate_frame(&new_frame);
+			map_frame(faulted_env->env_page_directory, new_frame, ROUNDDOWN(fault_va, PAGE_SIZE), PERM_USER | PERM_WRITEABLE);
+
+			// Read the page from page file if it exists
+			int ret = pf_read_env_page(faulted_env, (void*)ROUNDDOWN(fault_va, PAGE_SIZE));
+			if (ret == E_PAGE_NOT_EXIST_IN_PF)
+			{
+				// New stack or heap page: add empty page in page file
+				if ((fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) ||
+					(fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX))
+				{
+					pf_add_empty_env_page(faulted_env, ROUNDDOWN(fault_va, PAGE_SIZE), 1);
+				}
+				else
+				{
+					// Invalid access: kill the environment
+					sched_kill_env(faulted_env->env_id);
+					return;
+				}
+			}
+			// Reuse the victim WS element for the new page
+			victimWSElement->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+			victimWSElement->time_stamp = 0;
+			victimWSElement->sweeps_counter = 0;
+		    // advance the CLOCK hand to the next element
+			faulted_env->page_last_WS_element = LIST_NEXT(victimWSElement);
+			if (faulted_env->page_last_WS_element == NULL)
+				faulted_env->page_last_WS_element = LIST_FIRST(&(faulted_env->page_WS_list));
+        #else
+			panic("CLOCK replacement requires USE_KHEAP");
+        #endif
 		}
 		else if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_TIME_APPROX))
 		{
