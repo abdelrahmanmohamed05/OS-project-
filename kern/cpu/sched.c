@@ -362,11 +362,47 @@ void clock_interrupt_handler(struct Trapframe* tf)
 // [9] Update LRU Timestamp of WS Elements
 //	  (Automatically Called Every Quantum in case of LRU Time Approx)
 //===================================================================
+
+extern int pt_get_page_permissions(uint32 *pgdir, uint32 va);
+extern void pt_set_page_permissions(uint32 *pgdir, uint32 va, int set_flags, int clear_flags);
+
 void update_WS_time_stamps()
 {
-	//TODO: [PROJECT'25.IM#6] FAULT HANDLER II - #1 update_WS_time_stamps
-	//Your code is here
-	//Comment the following line
-	panic("update_WS_time_stamps is not implemented yet...!!");
+    struct Env *curenv = get_cpu_proc(); /* current running env (from your sched.c usage) */
+    if (!curenv) return;
 
+#if USE_KHEAP
+    struct WorkingSetElement *we;
+    LIST_FOREACH(we, &curenv->page_WS_list, prev_next_info) {
+        if (we->empty) continue;
+
+        /* shift right one bit */
+        we->time_stamp >>= 1;
+
+        /* read PTE used bit */
+        int perms = pt_get_page_permissions(curenv->env_page_directory, we->virtual_address);
+        if (perms & PERM_USED) {
+            /* set MSB (bit 31) to 1 */
+            we->time_stamp |= (1u << 31);
+            /* clear the used bit for next tick */
+            pt_set_page_permissions(curenv->env_page_directory, we->virtual_address, 0, PERM_USED);
+        }
+        /* else: accessed==0 -> MSB stays 0 */
+    }
+#else
+    uint32 max = curenv->page_WS_max_size;
+    for (uint32 i = 0; i < max; ++i) {
+        struct WorkingSetElement *we = &curenv->ptr_pageWorkingSet[i];
+        if (we->empty) continue;
+
+        we->time_stamp >>= 1;
+
+        int perms = pt_get_page_permissions(curenv->env_page_directory, we->virtual_address);
+        if (perms & PERM_USED) {
+            we->time_stamp |= (1u << 31);
+            pt_set_page_permissions(curenv->env_page_directory, we->virtual_address, 0, PERM_USED);
+        }
+    }
+#endif
 }
+

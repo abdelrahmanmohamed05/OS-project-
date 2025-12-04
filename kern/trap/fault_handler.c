@@ -540,17 +540,275 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 		else if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_TIME_APPROX))
 		{
 			//TODO: [PROJECT'25.IM#6] FAULT HANDLER II - #2 LRU Aging Replacement
-			//Your code is here
-			//Comment the following line
-			panic("page_fault_handler().REPLACEMENT is not implemented yet...!!");
+			            //Your code is here
+			            //Comment the following line
+
+		#if USE_KHEAP
+		    struct WorkingSetElement *we;
+		    struct WorkingSetElement *victim = NULL;
+		    uint32 min_ts = (uint32)-1;
+
+		    LIST_FOREACH(we, &faulted_env->page_WS_list, prev_next_info) {
+		        if (we->empty) continue;
+		        if (we->time_stamp < min_ts) {
+		            min_ts = we->time_stamp;
+		            victim = we;
+		        }
+		    }
+
+		    if (victim == NULL) {
+		        panic("LRU: no victim found while WS is full");
+		    }
+
+		    uint32 victim_va = victim->virtual_address;
+		    int victim_perms = pt_get_page_permissions(faulted_env->env_page_directory, victim_va);
+		    uint32 *ptr_page_table = NULL;
+		    struct FrameInfo *victim_frame = get_frame_info(faulted_env->env_page_directory, victim_va, &ptr_page_table);
+		    if (!victim_frame) panic("LRU: victim frame not found");
+
+
+		    if (victim_perms & PERM_MODIFIED) {
+		        pf_update_env_page(faulted_env, victim_va, victim_frame);
+		    }
+
+		    unmap_frame(faulted_env->env_page_directory, victim_va);
+
+
+		    victim->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+		    victim->time_stamp = 0;
+		    victim->sweeps_counter = 0;
+
+
+		    faulted_env->page_last_WS_element = LIST_NEXT(victim);
+		    if (faulted_env->page_last_WS_element == NULL)
+		        faulted_env->page_last_WS_element = LIST_FIRST(&faulted_env->page_WS_list);
+
+
+		    struct FrameInfo *new_frame = NULL;
+		    if (allocate_frame(&new_frame) != E_NO_MEM) panic("LRU: allocate_frame failed");
+		    map_frame(faulted_env->env_page_directory, new_frame, ROUNDDOWN(fault_va, PAGE_SIZE), PERM_USER | PERM_WRITEABLE);
+
+
+		    int ret = pf_read_env_page(faulted_env, (void*)ROUNDDOWN(fault_va, PAGE_SIZE));
+		    if (ret == E_PAGE_NOT_EXIST_IN_PF) {
+		        if ((fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) ||
+		            (fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX)) {
+		            pf_add_empty_env_page(faulted_env, ROUNDDOWN(fault_va, PAGE_SIZE), 1);
+		        } else {
+		            sched_kill_env(faulted_env->env_id);
+		            return;
+		        }
+		    }
+
+		#else
+
+		    uint32 max = faulted_env->page_WS_max_size;
+		    int victim_idx = -1;
+		    uint32 min_ts2 = (uint32)-1;
+		    for (uint32 i = 0; i < max; ++i) {
+		        struct WorkingSetElement *we2 = &faulted_env->ptr_pageWorkingSet[i];
+		        if (we2->empty) continue;
+		        if (we2->time_stamp < min_ts2) {
+		            min_ts2 = we2->time_stamp;
+		            victim_idx = (int)i;
+		        }
+		    }
+		    if (victim_idx < 0) panic("LRU: no victim found (non-kheap)");
+
+		    struct WorkingSetElement *victim2 = &faulted_env->ptr_pageWorkingSet[victim_idx];
+		    uint32 victim_va2 = victim2->virtual_address;
+		    int victim_perms2 = pt_get_page_permissions(faulted_env->env_page_directory, victim_va2);
+		    uint32 *ptr_page_table2 = NULL;
+		    struct FrameInfo *victim_frame2 = get_frame_info(faulted_env->env_page_directory, victim_va2, &ptr_page_table2);
+		    if (!victim_frame2) panic("LRU: victim frame not found (non-kheap)");
+
+		    if (victim_perms2 & PERM_MODIFIED) {
+		        pf_update_env_page(faulted_env, victim_va2, victim_frame2);
+		    }
+
+		    unmap_frame(faulted_env->env_page_directory, victim_va2);
+
+
+		    victim2->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+		    victim2->empty = 0;
+		    victim2->time_stamp = 0;
+		    victim2->sweeps_counter = 0;
+
+
+		    struct FrameInfo *new_frame2 = NULL;
+		    if (allocate_frame(&new_frame2) != E_NO_MEM) panic("LRU: allocate_frame failed (non-kheap)");
+		    map_frame(faulted_env->env_page_directory, new_frame2, ROUNDDOWN(fault_va, PAGE_SIZE), PERM_USER | PERM_WRITEABLE);
+
+		    int ret2 = pf_read_env_page(faulted_env, (void*)ROUNDDOWN(fault_va, PAGE_SIZE));
+		    if (ret2 == E_PAGE_NOT_EXIST_IN_PF) {
+		        if ((fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) ||
+		            (fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX)) {
+		            pf_add_empty_env_page(faulted_env, ROUNDDOWN(fault_va, PAGE_SIZE), 1);
+		        } else {
+		            sched_kill_env(faulted_env->env_id);
+		            return;
+		        }
+		    }
+
+		    faulted_env->page_last_WS_index = (victim_idx + 1) % faulted_env->page_WS_max_size;
+		#endif
 		}
+
 		else if (isPageReplacmentAlgorithmModifiedCLOCK())
 		{
 			//TODO: [PROJECT'25.IM#6] FAULT HANDLER II - #3 Modified Clock Replacement
-			//Your code is here
-			//Comment the following line
-			panic("page_fault_handler().REPLACEMENT is not implemented yet...!!");
+			            //Your code is here
+			            //Comment the following line
+		#if USE_KHEAP
+
+		    if (faulted_env->page_last_WS_element == NULL)
+		        faulted_env->page_last_WS_element = LIST_FIRST(&faulted_env->page_WS_list);
+		    struct WorkingSetElement *hand = faulted_env->page_last_WS_element;
+		    if (hand == NULL) panic("Modified Clock: empty WS while full");
+
+		    struct WorkingSetElement *start = hand;
+		    struct WorkingSetElement *victim = NULL;
+
+
+		    do {
+		        uint32 va = hand->virtual_address;
+		        int perms = pt_get_page_permissions(faulted_env->env_page_directory, va);
+		        int used = (perms & PERM_USED) ? 1 : 0;
+		        int mod  = (perms & PERM_MODIFIED) ? 1 : 0;
+		        if (!used && !mod) { victim = hand; break; }
+
+		        hand = LIST_NEXT(hand);
+		        if (hand == NULL) hand = LIST_FIRST(&faulted_env->page_WS_list);
+		    } while (hand != start);
+
+
+		    if (victim == NULL) {
+		        hand = faulted_env->page_last_WS_element;
+		        start = hand;
+		        do {
+		            uint32 va = hand->virtual_address;
+		            int perms = pt_get_page_permissions(faulted_env->env_page_directory, va);
+		            int used = (perms & PERM_USED) ? 1 : 0;
+		            if (!used) { victim = hand; break; }
+
+		            pt_set_page_permissions(faulted_env->env_page_directory, va, 0, PERM_USED);
+		            hand = LIST_NEXT(hand);
+		            if (hand == NULL) hand = LIST_FIRST(&faulted_env->page_WS_list);
+		        } while (hand != start);
+		    }
+
+		    if (victim == NULL) {
+		        victim = faulted_env->page_last_WS_element ? faulted_env->page_last_WS_element : LIST_FIRST(&faulted_env->page_WS_list);
+		    }
+
+		    uint32 victim_va = victim->virtual_address;
+		    int victim_perms = pt_get_page_permissions(faulted_env->env_page_directory, victim_va);
+		    uint32 *ptr_page_table = NULL;
+		    struct FrameInfo *victim_frame = get_frame_info(faulted_env->env_page_directory, victim_va, &ptr_page_table);
+		    if (!victim_frame) panic("Modified Clock: victim frame not found");
+
+		    if (victim_perms & PERM_MODIFIED) {
+		        pf_update_env_page(faulted_env, victim_va, victim_frame);
+		    }
+
+		    unmap_frame(faulted_env->env_page_directory, victim_va);
+
+
+		    struct FrameInfo *new_frame = NULL;
+		    if (allocate_frame(&new_frame) != E_NO_MEM) panic("Modified Clock: allocate frame failed");
+		    map_frame(faulted_env->env_page_directory, new_frame, ROUNDDOWN(fault_va, PAGE_SIZE), PERM_USER | PERM_WRITEABLE);
+
+		    int ret = pf_read_env_page(faulted_env, (void*)ROUNDDOWN(fault_va, PAGE_SIZE));
+		    if (ret == E_PAGE_NOT_EXIST_IN_PF) {
+		        if ((fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) ||
+		            (fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX)) {
+		            pf_add_empty_env_page(faulted_env, ROUNDDOWN(fault_va, PAGE_SIZE), 1);
+		        } else {
+		            sched_kill_env(faulted_env->env_id);
+		            return;
+		        }
+		    }
+
+
+		    victim->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+		    victim->time_stamp = 0;
+		    victim->sweeps_counter = 0;
+
+
+		    faulted_env->page_last_WS_element = LIST_NEXT(victim);
+		    if (faulted_env->page_last_WS_element == NULL)
+		        faulted_env->page_last_WS_element = LIST_FIRST(&faulted_env->page_WS_list);
+
+		#else
+
+		    uint32 max = faulted_env->page_WS_max_size;
+		    uint32 start = faulted_env->page_last_WS_index % max;
+		    int victim_idx = -1;
+
+
+		    for (uint32 i = 0; i < max; ++i) {
+		        uint32 idx = (start + i) % max;
+		        struct WorkingSetElement *we = &faulted_env->ptr_pageWorkingSet[idx];
+		        if (we->empty) continue;
+		        int perms = pt_get_page_permissions(faulted_env->env_page_directory, we->virtual_address);
+		        int used = (perms & PERM_USED) ? 1 : 0;
+		        int mod  = (perms & PERM_MODIFIED) ? 1 : 0;
+		        if (!used && !mod) { victim_idx = (int)idx; break; }
+		    }
+
+
+		    if (victim_idx < 0) {
+		        for (uint32 i = 0; i < max; ++i) {
+		            uint32 idx = (start + i) % max;
+		            struct WorkingSetElement *we = &faulted_env->ptr_pageWorkingSet[idx];
+		            if (we->empty) continue;
+		            int perms = pt_get_page_permissions(faulted_env->env_page_directory, we->virtual_address);
+		            int used = (perms & PERM_USED) ? 1 : 0;
+		            if (!used) { victim_idx = (int)idx; break; }
+
+		            pt_set_page_permissions(faulted_env->env_page_directory, we->virtual_address, 0, PERM_USED);
+		        }
+		    }
+
+		    if (victim_idx < 0) victim_idx = (int)start;
+
+		    struct WorkingSetElement *victim2 = &faulted_env->ptr_pageWorkingSet[victim_idx];
+		    uint32 victim_va2 = victim2->virtual_address;
+		    int victim_perms2 = pt_get_page_permissions(faulted_env->env_page_directory, victim_va2);
+		    uint32 *ptr_page_table2 = NULL;
+		    struct FrameInfo *victim_frame2 = get_frame_info(faulted_env->env_page_directory, victim_va2, &ptr_page_table2);
+		    if (!victim_frame2) panic("Modified Clock: victim frame not found (non-kheap)");
+
+		    if (victim_perms2 & PERM_MODIFIED) pf_update_env_page(faulted_env, victim_va2, victim_frame2);
+		    unmap_frame(faulted_env->env_page_directory, victim_va2);
+
+
+		    victim2->virtual_address = ROUNDDOWN(fault_va, PAGE_SIZE);
+		    victim2->empty = 0;
+		    victim2->time_stamp = 0;
+		    victim2->sweeps_counter = 0;
+
+
+		    struct FrameInfo *new_frame3 = NULL;
+		    if (allocate_frame(&new_frame3) != E_NO_MEM) panic("Modified Clock: allocate frame failed (non-kheap)");
+		    map_frame(faulted_env->env_page_directory, new_frame3, ROUNDDOWN(fault_va, PAGE_SIZE), PERM_USER | PERM_WRITEABLE);
+
+		    int ret3 = pf_read_env_page(faulted_env, (void*)ROUNDDOWN(fault_va, PAGE_SIZE));
+		    if (ret3 == E_PAGE_NOT_EXIST_IN_PF) {
+		        if ((fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) ||
+		            (fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX)) {
+		            pf_add_empty_env_page(faulted_env, ROUNDDOWN(fault_va, PAGE_SIZE), 1);
+		        } else {
+		            sched_kill_env(faulted_env->env_id);
+		            return;
+		        }
+		    }
+
+
+		    faulted_env->page_last_WS_index = (victim_idx + 1) % faulted_env->page_WS_max_size;
+		#endif
 		}
+
 	}
 }
 
