@@ -12,11 +12,11 @@
 #include "../cpu/cpu.h"
 #include "../proc/user_environment.h"
 
-void init_sleeplock(struct sleeplock *lk, char *name)
+void init_sleeplock(struct sleeplock* lk, char* name)
 {
 	init_channel(&(lk->chan), "sleep lock channel");
 	char prefix[30] = "lock of sleeplock - ";
-	char guardName[30+NAMELEN];
+	char guardName[30 + NAMELEN];
 	strcconcat(prefix, name, guardName);
 	init_kspinlock(&(lk->lk), guardName);
 	strcpy(lk->name, name);
@@ -24,23 +24,43 @@ void init_sleeplock(struct sleeplock *lk, char *name)
 	lk->pid = 0;
 }
 
-void acquire_sleeplock(struct sleeplock *lk)
+void acquire_sleeplock(struct sleeplock* lk)
 {
 	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #4 SLEEP LOCK - acquire_sleeplock
-	//Your code is here
-	//Comment the following line
-	panic("acquire_sleeplock() is not implemented yet...!!");
+		//Acquire the internal spinlock to protect the 'locked' flag
+	acquire_kspinlock(&(lk->lk));
+
+	//Loop while the lock is already held by another process
+	while (lk->locked)
+	{
+		sleep(&(lk->chan), &(lk->lk));
+	}
+
+	lk->locked = 1;
+	lk->pid = get_cpu_proc()->env_id;
+
+	//Release the internal spinlock
+	release_kspinlock(&(lk->lk));
 }
 
-void release_sleeplock(struct sleeplock *lk)
+void release_sleeplock(struct sleeplock* lk)
 {
 	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #5 SLEEP LOCK - release_sleeplock
-	//Your code is here
-	//Comment the following line
-	panic("release_sleeplock() is not implemented yet...!!");
+		//Acquire the internal spinlock
+	acquire_kspinlock(&(lk->lk));
+
+	//Wake up all processes waiting on this lock (if any)
+	wakeup_all(&(lk->chan));
+
+	//Mark the lock as free
+	lk->locked = 0;
+	lk->pid = 0;
+
+	//Release the internal spinlock
+	release_kspinlock(&(lk->lk));
 }
 
-int holding_sleeplock(struct sleeplock *lk)
+int holding_sleeplock(struct sleeplock* lk)
 {
 	int r;
 	acquire_kspinlock(&(lk->lk));
