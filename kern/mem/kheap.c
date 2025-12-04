@@ -59,9 +59,8 @@ void return_page(void* va)
 void* kmalloc(unsigned int size)
 {
 	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #1 kmalloc
-
+#if USE_KHEAP
 	// [1] Block Allocator (sizes <= 2KB)
-	// Ref: Appendix VIII & Dynamic Allocator Module
 	if (size <= DYN_ALLOC_MAX_BLOCK_SIZE)
 	{
 		return alloc_block(size);
@@ -76,7 +75,7 @@ void* kmalloc(unsigned int size)
 	// Start searching from kheapPageAllocStart
 	uint32 found_va = 0;
 	uint32 free_pages_count = 0;
-	uint32 *ptr_page_table = NULL;
+	uint32* ptr_page_table = NULL;
 
 	for (uint32 va = kheapPageAllocStart; va < KERNEL_HEAP_MAX; va += PAGE_SIZE)
 	{
@@ -84,7 +83,6 @@ void* kmalloc(unsigned int size)
 		int ret = get_page_table(ptr_page_directory, va, &ptr_page_table);
 
 		// If table exists and entry is present, the page is used
-		// Ref: Appendix III (Permissions)
 		if (ret == TABLE_IN_MEMORY && (ptr_page_table[PTX(va)] & PERM_PRESENT))
 		{
 			free_pages_count = 0; // Reset counter, sequence broken
@@ -121,6 +119,10 @@ void* kmalloc(unsigned int size)
 	}
 
 	return (void*)found_va;
+#else
+	panic("kmalloc requires USE_KHEAP");
+	return NULL;
+#endif
 }
 //=================================
 // [2] FREE SPACE FROM KERNEL HEAP:
@@ -128,6 +130,7 @@ void* kmalloc(unsigned int size)
 void kfree(void* virtual_address)
 {
 	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #2 kfree
+#if USE_KHEAP
 	uint32 va = (uint32)virtual_address;
 
 	// [1] Check if address is inside Block Allocator range
@@ -141,7 +144,7 @@ void kfree(void* virtual_address)
 	if (va >= kheapPageAllocStart && va < KERNEL_HEAP_MAX)
 	{
 		uint32 curr_va = va;
-		uint32 *ptr_page_table = NULL;
+		uint32* ptr_page_table = NULL;
 
 		// Free contiguous pages until we hit a non-present page
 		while (curr_va < KERNEL_HEAP_MAX)
@@ -163,6 +166,9 @@ void kfree(void* virtual_address)
 	}
 
 	panic("kfree() called with invalid virtual address");
+#else
+	panic("kfree requires USE_KHEAP");
+#endif
 }
 //=================================
 // [3] FIND VA OF GIVEN PA:
@@ -171,16 +177,20 @@ unsigned int kheap_virtual_address(unsigned int physical_address)
 {
 	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #3 kheap_virtual_address
 
-	struct FrameInfo *ptr_frame_info = to_frame_info(physical_address);
+#if USE_KHEAP
+	struct FrameInfo* ptr_frame_info = to_frame_info(physical_address);
 	if (ptr_frame_info->references == 0) return 0;
 
-	// Use Macro from Appendix VIII to convert PA to VA for Static Kernel Base
 	if (physical_address < (KERNEL_HEAP_START - KERNEL_BASE))
 	{
 		return (uint32)STATIC_KERNEL_VIRTUAL_ADDRESS(physical_address);
 	}
 
 	return 0;
+#else
+	panic("kheap_virtual_address requires USE_KHEAP");
+	return 0;
+#endif
 }
 //=================================
 // [4] FIND PA OF GIVEN VA:
@@ -189,10 +199,10 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 {
 	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #4 kheap_physical_address
 
-	uint32 *ptr_page_table = NULL;
+#if USE_KHEAP
+	uint32* ptr_page_table = NULL;
 	int ret = get_page_table(ptr_page_directory, virtual_address, &ptr_page_table);
 
-	// Ref: Appendix III & VIII
 	if (ret == TABLE_IN_MEMORY && (ptr_page_table[PTX(virtual_address)] & PERM_PRESENT))
 	{
 		uint32 frame_num = ptr_page_table[PTX(virtual_address)] >> 12;
@@ -201,6 +211,10 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 	}
 
 	return 0;
+#else
+	panic("kheap_physical_address requires USE_KHEAP");
+	return 0;
+#endif
 }
 //=================================================================================//
 //============================== BONUS FUNCTION ===================================//
@@ -215,9 +229,9 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 //	A call with virtual_address = null is equivalent to kmalloc().
 //	A call with new_size = zero is equivalent to kfree().
 
-extern __inline__ uint32 get_block_size(void *va);
+extern __inline__ uint32 get_block_size(void* va);
 
-void *krealloc(void *virtual_address, uint32 new_size)
+void* krealloc(void* virtual_address, uint32 new_size)
 {
 	//TODO: [PROJECT'25.BONUS#2] KERNEL REALLOC - krealloc
 	//Your code is here
