@@ -543,12 +543,12 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 			            //Your code is here
 			            //Comment the following line
 
-		#if USE_KHEAP
+		    #if USE_KHEAP
 		    struct WorkingSetElement *we;
 		    struct WorkingSetElement *victim = NULL;
 		    uint32 min_ts = (uint32)-1;
 
-		    LIST_FOREACH(we, &faulted_env->page_WS_list, prev_next_info) {
+		    LIST_FOREACH(we, &faulted_env->page_WS_list) {
 		        if (we->empty) continue;
 		        if (we->time_stamp < min_ts) {
 		            min_ts = we->time_stamp;
