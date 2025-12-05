@@ -690,15 +690,25 @@ int get_load_average()
 /********* for Priority RR Scheduler *************/
 void env_set_priority(int envID, int priority)
 {
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 env_set_priority
-	//Your code is here
-	//Comment the following line
-	panic("env_set_priority() is not implemented yet...!!");
+	acquire_kspinlock(&ProcessQueues.qlock);
+	struct Env* e = NULL;
+	if (envid2env(envID, &e, 0) < 0) {
+		release_kspinlock(&ProcessQueues.qlock);
+		return;
+	}
+	if (priority < 0) priority = 0;
+	if (priority >= (int)num_of_ready_queues) priority = (int)num_of_ready_queues - 1;
+	if (e->env_status == ENV_READY) {
+		sched_remove_ready(e);
+		e->priority = priority;
+		e->prirr_age_ticks = 0;
+		sched_insert_ready(e);
+	} else {
+		e->priority = priority;
+	}
+	release_kspinlock(&ProcessQueues.qlock);
 }
 void sched_set_starv_thresh(uint32 starvThresh)
 {
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 sched_set_starv_thresh
-	//Your code is here
-	//Comment the following line
-	panic("sched_set_starv_thresh() is not implemented yet...!!");
+	PRIRR_starvation_threshold = starvThresh;
 }

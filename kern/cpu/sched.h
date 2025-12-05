@@ -43,6 +43,8 @@ struct
 #endif
 	uint8 num_of_ready_queues ;			// Number of ready queue(s)
 
+uint32 PRIRR_starvation_threshold;
+
 //===============
 
 //2015

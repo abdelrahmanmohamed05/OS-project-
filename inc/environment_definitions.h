@@ -178,7 +178,7 @@ struct Env {
 	//==================
 	/*CPU PRIORITY RR Sched...*/
 	//==================
-
+	uint32 prirr_age_ticks;
 	//================
 	/*STATISTICS...*/
 	//================

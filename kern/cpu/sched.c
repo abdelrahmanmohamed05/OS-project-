@@ -222,13 +222,18 @@ void sched_init_BSD(uint8 numOfLevels, uint8 quantum)
 void sched_init_PRIRR(uint8 numOfPriorities, uint8 quantum, uint32 starvThresh)
 {
 	{
-		//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #2 sched_init_PRIRR
-		//Your code is here
-		//Comment the following line
-		panic("sched_init_PRIRR() is not implemented yet...!!");
-
-
-
+		num_of_ready_queues = numOfPriorities;
+#if USE_KHEAP
+		sched_delete_ready_queues();
+		ProcessQueues.env_ready_queues = kmalloc(sizeof(struct Env_Queue) * num_of_ready_queues);
+		quantums = kmalloc(num_of_ready_queues * sizeof(uint8));
+#endif
+		for (int i = 0; i < num_of_ready_queues; ++i) {
+			quantums[i] = quantum;
+			init_queue(&(ProcessQueues.env_ready_queues[i]));
+		}
+		kclock_set_quantum(quantum);
+		PRIRR_starvation_threshold = starvThresh;
 	}
 	//=========================================
 	//DON'T CHANGE THESE LINES=================
@@ -310,10 +315,21 @@ struct Env* fos_scheduler_PRIRR()
 	if(!holding_kspinlock(&ProcessQueues.qlock))
 		panic("fos_scheduler_PRIRR: q.lock is not held by this CPU while it's expected to be.");
 	/****************************************************************************************/
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #3 fos_scheduler_PRIRR
-	//Your code is here
-	//Comment the following line
-	panic("fos_scheduler_PRIRR() is not implemented yet...!!");
+	struct Env *next_env = NULL;
+	struct Env *cur_env = get_cpu_proc();
+	if (cur_env != NULL) {
+		enqueue(&(ProcessQueues.env_ready_queues[cur_env->priority]), cur_env);
+	}
+	for (int i = num_of_ready_queues - 1; i >= 0; --i) {
+		if (queue_size(&(ProcessQueues.env_ready_queues[i])) > 0) {
+			next_env = dequeue(&(ProcessQueues.env_ready_queues[i]));
+			break;
+		}
+	}
+	if (next_env) {
+		kclock_set_quantum(quantums[next_env->priority]);
+	}
+	return next_env;
 }
 
 //========================================
@@ -324,13 +340,35 @@ void clock_interrupt_handler(struct Trapframe* tf)
 {
 	if (isSchedMethodPRIRR())
 	{
-		//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #4 clock_interrupt_handler
-		//Your code is here
-		//Comment the following line
-		panic("clock_interrupt_handler() is not implemented yet...!!");
-
-
-
+		acquire_kspinlock(&ProcessQueues.qlock);
+		for (int i = 0; i < NENV; ++i) {
+			struct Env* e = &envs[i];
+			if (e->env_status == ENV_READY) {
+				e->prirr_age_ticks++;
+				if (PRIRR_starvation_threshold > 0 && e->prirr_age_ticks >= PRIRR_starvation_threshold) {
+					if (e->priority < (int)num_of_ready_queues - 1) {
+						sched_remove_ready(e);
+						e->priority++;
+						e->prirr_age_ticks = 0;
+						sched_insert_ready(e);
+					} else {
+						e->prirr_age_ticks = 0;
+					}
+				}
+			}
+		}
+		ticks++;
+		struct Env* p = get_cpu_proc();
+		if (p != NULL) {
+			p->nClocks++;
+			if(isPageReplacmentAlgorithmLRU(PG_REP_LRU_TIME_APPROX)) {
+				update_WS_time_stamps();
+			}
+			p->env_status = ENV_READY;
+			sched();
+		}
+		release_kspinlock(&ProcessQueues.qlock);
+		return;
 	}
 
 	/********DON'T CHANGE THESE LINES***********/
@@ -373,7 +411,7 @@ void update_WS_time_stamps()
 
 #if USE_KHEAP
     struct WorkingSetElement *we;
-    LIST_FOREACH(we, &curenv->page_WS_list, prev_next_info) {
+    LIST_FOREACH(we, &curenv->page_WS_list) {
         if (we->empty) continue;
 
         /* shift right one bit */
@@ -405,4 +443,3 @@ void update_WS_time_stamps()
     }
 #endif
 }
-
