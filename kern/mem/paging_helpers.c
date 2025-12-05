@@ -51,9 +51,11 @@ inline void pt_set_page_permissions(uint32* directory, uint32 virtual_address, u
 //If the page table not exist, return -1
 inline int pt_get_page_permissions(uint32* directory, uint32 virtual_address )
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("pt_get_page_permissions() is not implemented yet!");
+    uint32* ptr_page_table ;
+    int ret = get_page_table(directory, virtual_address, &ptr_page_table);
+    if (ret != TABLE_IN_MEMORY || ptr_page_table == NULL)
+        return -1;
+    return ptr_page_table[PTX(virtual_address)] & 0xFFF;
 }
 
 //===============================
@@ -65,9 +67,12 @@ inline int pt_get_page_permissions(uint32* directory, uint32 virtual_address )
 //REMEMBER: to invalidate the TLB cache
 inline void pt_clear_page_table_entry(uint32* directory, uint32 virtual_address)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("pt_clear_page_table_entry() is not implemented yet!");
+    uint32* ptr_page_table ;
+    int ret = get_page_table(directory, virtual_address, &ptr_page_table);
+    if (ret != TABLE_IN_MEMORY || ptr_page_table == NULL)
+        return;
+    ptr_page_table[PTX(virtual_address)] = 0;
+    tlb_invalidate(directory, (void*)virtual_address);
 }
 
 /***********************************************************************************************/
@@ -83,9 +88,14 @@ inline void pt_clear_page_table_entry(uint32* directory, uint32 virtual_address)
 //If the page or the page table is not present, return -1
 inline uint32 virtual_to_physical(uint32* directory, uint32 virtual_address)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("Function is not implemented yet!");
+    uint32* ptr_page_table ;
+    int ret = get_page_table(directory, virtual_address, &ptr_page_table);
+    if (ret != TABLE_IN_MEMORY || ptr_page_table == NULL)
+        return (uint32)-1;
+    uint32 entry = ptr_page_table[PTX(virtual_address)];
+    if ((entry & PERM_PRESENT) != PERM_PRESENT)
+        return (uint32)-1;
+    return EXTRACT_ADDRESS(entry) | PGOFF(virtual_address);
 }
 
 //===============================
@@ -96,9 +106,26 @@ inline uint32 virtual_to_physical(uint32* directory, uint32 virtual_address)
 //If not found, return 0xFFFFFFFF
 inline uint32 physical_to_virtual(uint32* directory, uint32 physical_address)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("Function is not implemented yet!");
+    for (uint32 pdx = 0; pdx < NPDENTRIES; ++pdx)
+    {
+        uint32 pde = directory[pdx];
+        if ((pde & PERM_PRESENT) != PERM_PRESENT)
+            continue;
+        uint32* pt = NULL;
+        if(USE_KHEAP && !CHECK_IF_KERNEL_ADDRESS((uint32)PGADDR(pdx,0,0)))
+            pt = (uint32*)kheap_virtual_address(EXTRACT_ADDRESS(pde));
+        else
+            pt = STATIC_KERNEL_VIRTUAL_ADDRESS(EXTRACT_ADDRESS(pde));
+        for (uint32 ptx = 0; ptx < NPTENTRIES; ++ptx)
+        {
+            uint32 pte = pt[ptx];
+            if ((pte & PERM_PRESENT) != PERM_PRESENT)
+                continue;
+            if (EXTRACT_ADDRESS(pte) == (physical_address & ~0xFFF))
+                return (uint32)PGADDR(pdx, ptx, 0);
+        }
+    }
+    return 0xFFFFFFFF;
 }
 
 //===============================
@@ -164,9 +191,21 @@ inline int alloc_page(uint32* directory, uint32 va, uint32 perms, bool set_to_ze
 //HINT: remember to free the allocated frame if there is no space for the necessary page table
 inline int alloc_shared_page(uint32* page_dir1, uint32 va1,uint32* page_dir2, uint32 va2, uint32 perms)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("Function is not implemented yet!");
+    struct FrameInfo* fi = NULL;
+    if (allocate_frame(&fi) == E_NO_MEM)
+        return E_NO_MEM;
+    if (map_frame(page_dir1, fi, ROUNDDOWN(va1, PAGE_SIZE), perms) == E_NO_MEM)
+    {
+        free_frame(fi);
+        return E_NO_MEM;
+    }
+    if (map_frame(page_dir2, fi, ROUNDDOWN(va2, PAGE_SIZE), perms) == E_NO_MEM)
+    {
+        unmap_frame(page_dir1, ROUNDDOWN(va1, PAGE_SIZE));
+        free_frame(fi);
+        return E_NO_MEM;
+    }
+    return 0;
 }
 
 //===============================
@@ -185,7 +224,7 @@ inline void del_page_table(uint32* page_dir, uint32 va)
 
 	// get the page table of the given virtual address
 	uint32 * ptr_page_table ;
-	get_page_table(ptr_page_directory, va, &ptr_page_table);
+	get_page_table(page_dir, va, &ptr_page_table);
 
 	if (ptr_page_table == NULL)
 		return ;
@@ -206,7 +245,7 @@ inline void del_page_table(uint32* page_dir, uint32 va)
 
 	// set the corresponding entry in the directory to 0
 	uint32 dir_index = PDX(va);
-	ptr_page_directory[dir_index] = 0;
+	page_dir[dir_index] = 0;
 
 	//clear the TLB cache
 	tlbflush();

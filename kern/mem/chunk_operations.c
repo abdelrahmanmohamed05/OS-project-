@@ -8,6 +8,7 @@
 #include <kern/trap/fault_handler.h>
 #include <kern/disk/pagefile_manager.h>
 #include <kern/proc/user_environment.h>
+#include "working_set_manager.h"
 #include "kheap.h"
 #include "memory_manager.h"
 #include <inc/queue.h>
@@ -28,9 +29,41 @@
 //	The given addresses may be not aligned on 4 KB
 int cut_paste_pages(uint32* page_directory, uint32 source_va, uint32 dest_va, uint32 num_of_pages)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("cut_paste_pages() is not implemented yet...!!");
+	uint32 src = ROUNDDOWN(source_va, PAGE_SIZE);
+	uint32 dst = ROUNDDOWN(dest_va, PAGE_SIZE);
+	for (uint32 i = 0; i < num_of_pages; ++i)
+	{
+		uint32 dva = dst + i*PAGE_SIZE;
+		uint32* dpt = NULL;
+		int dr = get_page_table(page_directory, dva, &dpt);
+		if (dr == TABLE_IN_MEMORY && dpt != NULL)
+		{
+			if ((dpt[PTX(dva)] & PERM_PRESENT) == PERM_PRESENT)
+				return -1;
+		}
+	}
+	for (uint32 i = 0; i < num_of_pages; ++i)
+	{
+		uint32 sva = src + i*PAGE_SIZE;
+		uint32 dva = dst + i*PAGE_SIZE;
+		uint32* spt = NULL;
+		if (get_page_table(page_directory, sva, &spt) != TABLE_IN_MEMORY || spt == NULL)
+			return -1;
+		uint32 spte = spt[PTX(sva)];
+		if ((spte & PERM_PRESENT) != PERM_PRESENT)
+			return -1;
+		struct FrameInfo* fi = get_frame_info(page_directory, sva);
+		if (fi == NULL)
+			return -1;
+		uint32 perms = spte & 0xFFF;
+		uint32* dpt = NULL;
+		if (get_page_table(page_directory, dva, &dpt) == TABLE_NOT_EXIST)
+			dpt = create_page_table(page_directory, dva);
+		map_frame(page_directory, fi, dva, perms);
+		unmap_frame(page_directory, sva);
+	}
+	tlbflush();
+	return 0;
 }
 
 //===============================
@@ -47,9 +80,42 @@ int cut_paste_pages(uint32* page_directory, uint32 source_va, uint32 dest_va, ui
 //	The given range(s) may be not aligned on 4 KB
 int copy_paste_chunk(uint32* page_directory, uint32 source_va, uint32 dest_va, uint32 size)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("copy_paste_chunk() is not implemented yet...!!");
+	uint32 sva = ROUNDDOWN(source_va, PAGE_SIZE);
+	uint32 eva = ROUNDUP(source_va + size, PAGE_SIZE);
+	uint32 dva = ROUNDDOWN(dest_va, PAGE_SIZE);
+	uint32 pages = (eva - sva) / PAGE_SIZE;
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		uint32 daddr = dva + i*PAGE_SIZE;
+		uint32* dpt = NULL;
+		int dr = get_page_table(page_directory, daddr, &dpt);
+		if (dr == TABLE_IN_MEMORY && dpt != NULL)
+		{
+			uint32 dpte = dpt[PTX(daddr)];
+			if ((dpte & PERM_PRESENT) == PERM_PRESENT && (dpte & PERM_WRITEABLE) == 0)
+				return -1;
+		}
+	}
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		uint32 saddr = sva + i*PAGE_SIZE;
+		uint32 daddr = dva + i*PAGE_SIZE;
+		uint32* spt = NULL; get_page_table(page_directory, saddr, &spt);
+		uint32* dpt = NULL; if (get_page_table(page_directory, daddr, &dpt) == TABLE_NOT_EXIST) dpt = create_page_table(page_directory, daddr);
+		struct FrameInfo* sfi = get_frame_info(page_directory, saddr);
+		if (sfi == NULL)
+			return -1;
+		uint32 spermsUser = spt ? (spt[PTX(saddr)] & PERM_USER) : PERM_USER;
+		struct FrameInfo* dfi = get_frame_info(page_directory, daddr);
+		if (dfi == NULL)
+		{
+			if (allocate_frame(&dfi) == E_NO_MEM || dfi == NULL)
+				return -1;
+			map_frame(page_directory, dfi, daddr, PERM_WRITEABLE | spermsUser);
+		}
+		memcpy((void*)daddr, (void*)saddr, PAGE_SIZE);
+	}
+	return 0;
 }
 
 //===============================
@@ -65,9 +131,32 @@ int copy_paste_chunk(uint32* page_directory, uint32 source_va, uint32 dest_va, u
 //	The given range(s) may be not aligned on 4 KB
 int share_chunk(uint32* page_directory, uint32 source_va,uint32 dest_va, uint32 size, uint32 perms)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("share_chunk() is not implemented yet...!!");
+	uint32 sva = ROUNDDOWN(source_va, PAGE_SIZE);
+	uint32 eva = ROUNDUP(source_va + size, PAGE_SIZE);
+	uint32 dva = ROUNDDOWN(dest_va, PAGE_SIZE);
+	uint32 pages = (eva - sva) / PAGE_SIZE;
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		uint32 daddr = dva + i*PAGE_SIZE;
+		uint32* dpt = NULL;
+		int dr = get_page_table(page_directory, daddr, &dpt);
+		if (dr == TABLE_IN_MEMORY && dpt != NULL)
+		{
+			if ((dpt[PTX(daddr)] & PERM_PRESENT) == PERM_PRESENT)
+				return -1;
+		}
+	}
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		uint32 saddr = sva + i*PAGE_SIZE;
+		uint32 daddr = dva + i*PAGE_SIZE;
+		struct FrameInfo* fi = get_frame_info(page_directory, saddr);
+		if (fi == NULL)
+			return -1;
+		uint32* dpt = NULL; if (get_page_table(page_directory, daddr, &dpt) == TABLE_NOT_EXIST) dpt = create_page_table(page_directory, daddr);
+		map_frame(page_directory, fi, daddr, perms);
+	}
+	return 0;
 }
 
 //===============================
@@ -79,9 +168,27 @@ int share_chunk(uint32* page_directory, uint32 source_va,uint32 dest_va, uint32 
 //	Allocation should be aligned on page boundary. However, the given range may be not aligned.
 int allocate_chunk(uint32* page_directory, uint32 va, uint32 size, uint32 perms)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("allocate_chunk() is not implemented yet...!!");
+	uint32 sva = ROUNDDOWN(va, PAGE_SIZE);
+	uint32 eva = ROUNDUP(va + size, PAGE_SIZE);
+	for (uint32 addr = sva; addr < eva; addr += PAGE_SIZE)
+	{
+		uint32* pt = NULL;
+		int r = get_page_table(page_directory, addr, &pt);
+		if (r == TABLE_IN_MEMORY && pt != NULL)
+		{
+			if ((pt[PTX(addr)] & PERM_PRESENT) == PERM_PRESENT)
+				return -1;
+		}
+	}
+	for (uint32 addr = sva; addr < eva; addr += PAGE_SIZE)
+	{
+		uint32* pt = NULL; if (get_page_table(page_directory, addr, &pt) == TABLE_NOT_EXIST) pt = create_page_table(page_directory, addr);
+		struct FrameInfo* fi = NULL;
+		if (allocate_frame(&fi) == E_NO_MEM || fi == NULL)
+			return -1;
+		map_frame(page_directory, fi, addr, perms);
+	}
+	return 0;
 }
 
 
@@ -93,9 +200,16 @@ int allocate_chunk(uint32* page_directory, uint32 va, uint32 size, uint32 perms)
 //Addresses may not be aligned on page boundaries
 uint32 calculate_free_space(uint32* page_directory, uint32 sva, uint32 eva)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("calculate_free_space() is not implemented yet...!!");
+	uint32 start = ROUNDDOWN(sva, PAGE_SIZE);
+	uint32 end = ROUNDUP(eva, PAGE_SIZE);
+	uint32 cnt = 0;
+	for (uint32 addr = start; addr < end; addr += PAGE_SIZE)
+	{
+		struct FrameInfo* fi = get_frame_info(page_directory, addr);
+		if (fi == NULL)
+			cnt++;
+	}
+	return cnt;
 }
 
 //=====================================
@@ -103,9 +217,29 @@ uint32 calculate_free_space(uint32* page_directory, uint32 sva, uint32 eva)
 //=====================================
 void calculate_allocated_space(uint32* page_directory, uint32 sva, uint32 eva, uint32 *num_tables, uint32 *num_pages)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("calculate_allocated_space() is not implemented yet...!!");
+	uint32 start = ROUNDDOWN(sva, PAGE_SIZE);
+	uint32 end = ROUNDUP(eva, PAGE_SIZE);
+	uint32 tables = 0;
+	uint32 pages = 0;
+	int seen_pdx[NPDENTRIES] = {0};
+	for (uint32 addr = start; addr < end; addr += PAGE_SIZE)
+	{
+		uint32* pt = NULL;
+		int r = get_page_table(page_directory, addr, &pt);
+		if (r == TABLE_IN_MEMORY && pt != NULL)
+		{
+			int pdx = PDX(addr);
+			if (!seen_pdx[pdx])
+			{
+				seen_pdx[pdx] = 1;
+				tables++;
+			}
+			if ((pt[PTX(addr)] & PERM_PRESENT) == PERM_PRESENT)
+				pages++;
+		}
+	}
+	*num_tables = tables;
+	*num_pages = pages;
 }
 
 //=====================================
@@ -116,9 +250,32 @@ void calculate_allocated_space(uint32* page_directory, uint32 sva, uint32 eva, u
 //	The given range(s) may be not aligned on 4 KB
 uint32 calculate_required_frames(uint32* page_directory, uint32 sva, uint32 size)
 {
-	//TODO: PRACTICE: fill this function.
-	//Comment the following line
-	panic("calculate_required_frames() is not implemented yet...!!");
+	uint32 start = ROUNDDOWN(sva, PAGE_SIZE);
+	uint32 end = ROUNDUP(sva + size, PAGE_SIZE);
+	uint32 data_needed = 0;
+	int need_table[NPDENTRIES] = {0};
+	uint32 table_needed = 0;
+	for (uint32 addr = start; addr < end; addr += PAGE_SIZE)
+	{
+		uint32* pt = NULL;
+		int r = get_page_table(page_directory, addr, &pt);
+		if (r == TABLE_NOT_EXIST)
+		{
+			int pdx = PDX(addr);
+			if (!need_table[pdx])
+			{
+				need_table[pdx] = 1;
+				table_needed++;
+			}
+			data_needed++;
+		}
+		else
+		{
+			if ((pt[PTX(addr)] & PERM_PRESENT) != PERM_PRESENT)
+				data_needed++;
+		}
+	}
+	return table_needed + data_needed;
 }
 
 //=================================================================================//
@@ -139,7 +296,9 @@ uint32 calculate_required_frames(uint32* page_directory, uint32 sva, uint32 size
 /*2024*/
 void* sys_sbrk(int numOfPages)
 {
-	panic("not implemented function");
+	if (numOfPages <= 0)
+		return NULL;
+	return kmalloc((uint32)numOfPages * PAGE_SIZE);
 }
 
 //=====================================
@@ -153,10 +312,19 @@ void allocate_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 //		return;
 	/*====================================*/
 
-	//TODO: [PROJECT'25.IM#2] USER HEAP - #2 allocate_user_mem
-	//Your code is here
-	//Comment the following line
-	panic("allocate_user_mem() is not implemented yet...!!");
+    uint32 sva = ROUNDDOWN(virtual_address, PAGE_SIZE);
+    uint32 eva = ROUNDUP(virtual_address + size, PAGE_SIZE);
+    for (uint32 va = sva; va < eva; va += PAGE_SIZE)
+    {
+        uint32* pt = NULL;
+        int r = get_page_table(e->env_page_directory, va, &pt);
+        if (r == TABLE_NOT_EXIST)
+        {
+            pt = create_page_table(e->env_page_directory, va);
+        }
+        uint32 avail = pt[PTX(va)] & PERM_AVAILABLE;
+        pt[PTX(va)] = avail | PERM_UHPAGE;
+    }
 }
 
 //=====================================
@@ -170,10 +338,22 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 //		return;
 	/*====================================*/
 
-	//TODO: [PROJECT'25.IM#2] USER HEAP - #4 free_user_mem
-	//Your code is here
-	//Comment the following line
-	panic("free_user_mem() is not implemented yet...!!");
+    uint32 sva = ROUNDDOWN(virtual_address, PAGE_SIZE);
+    uint32 eva = ROUNDUP(virtual_address + size, PAGE_SIZE);
+    for (uint32 va = sva; va < eva; va += PAGE_SIZE)
+    {
+        uint32* pt = NULL;
+        int r = get_page_table(e->env_page_directory, va, &pt);
+        if (r == TABLE_IN_MEMORY && pt != NULL)
+        {
+            uint32 pte = pt[PTX(va)];
+            uint32 avail = pte & PERM_AVAILABLE;
+            avail &= ~PERM_UHPAGE;
+            pt[PTX(va)] = avail;
+        }
+        pf_remove_env_page(e, va);
+        env_page_ws_invalidate(e, va);
+    }
 }
 
 //=====================================
@@ -181,8 +361,19 @@ void free_user_mem(struct Env* e, uint32 virtual_address, uint32 size)
 //=====================================
 void __free_user_mem_with_buffering(struct Env* e, uint32 virtual_address, uint32 size)
 {
-	// your code is here, remove the panic and write your code
-	panic("__free_user_mem_with_buffering() is not implemented yet...!!");
+	uint32 sva = ROUNDDOWN(virtual_address, PAGE_SIZE);
+	uint32 eva = ROUNDUP(virtual_address + size, PAGE_SIZE);
+	for (uint32 va = sva; va < eva; va += PAGE_SIZE)
+	{
+		uint32* pt = NULL;
+		if (get_page_table(e->env_page_directory, va, &pt) == TABLE_IN_MEMORY && pt != NULL)
+		{
+			pt[PTX(va)] &= ~PERM_UHPAGE;
+		}
+		pf_remove_env_page(e, va);
+		env_page_ws_invalidate(e, va);
+		unmap_frame(e->env_page_directory, va);
+	}
 }
 
 //=====================================
@@ -190,10 +381,28 @@ void __free_user_mem_with_buffering(struct Env* e, uint32 virtual_address, uint3
 //=====================================
 void move_user_mem(struct Env* e, uint32 src_virtual_address, uint32 dst_virtual_address, uint32 size)
 {
-	panic("move_user_mem() is not implemented yet...!!");
+	uint32 src = ROUNDDOWN(src_virtual_address, PAGE_SIZE);
+	uint32 dst = ROUNDDOWN(dst_virtual_address, PAGE_SIZE);
+	uint32 pages = ROUNDUP(size, PAGE_SIZE) / PAGE_SIZE;
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		uint32 dva = dst + i*PAGE_SIZE;
+		uint32* dpt = NULL;
+		int dr = get_page_table(e->env_page_directory, dva, &dpt);
+		if (dr == TABLE_IN_MEMORY && dpt != NULL)
+		{
+			if ((dpt[PTX(dva)] & PERM_PRESENT) == PERM_PRESENT)
+				panic("move_user_mem: dest exists");
+		}
+	}
+	cut_paste_pages(e->env_page_directory, src, dst, pages);
+	for (uint32 i = 0; i < pages; ++i)
+	{
+		pf_remove_env_page(e, src + i*PAGE_SIZE);
+		env_page_ws_invalidate(e, src + i*PAGE_SIZE);
+	}
 }
 
 //=================================================================================//
 //========================== END USER CHUNKS MANIPULATION =========================//
 //=================================================================================//
-
