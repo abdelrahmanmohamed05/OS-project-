@@ -63,6 +63,12 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 daEnd)
 		LIST_REMOVE(&freePagesList, &pageBlockInfoArr[i]); // ensure clean
 	}
 
+	// Fill freePagesList with all pages in correct order
+	for (int i = (DYN_ALLOC_MAX_SIZE / PAGE_SIZE) - 1; i >= 0; --i)
+	{
+		LIST_INSERT_HEAD(&freePagesList, &pageBlockInfoArr[i]);
+	}
+
 	is_initialized = 1;
 }
 
