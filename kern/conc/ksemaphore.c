@@ -22,7 +22,6 @@ void init_ksemaphore(struct ksemaphore* ksem, int value, char* name)
 
 void wait_ksemaphore(struct ksemaphore* ksem)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #6 SEMAPHORE - wait_ksemaphore
 		//Acquire the spinlock to protect the count
 	acquire_kspinlock(&(ksem->lk));
 
@@ -40,7 +39,6 @@ void wait_ksemaphore(struct ksemaphore* ksem)
 
 void signal_ksemaphore(struct ksemaphore* ksem)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #7 SEMAPHORE - signal_ksemaphore
 		//Acquire the spinlock
 	acquire_kspinlock(&(ksem->lk));
 

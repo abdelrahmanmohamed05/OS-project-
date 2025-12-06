@@ -1,7 +1,7 @@
 00200010 R __STAB_BEGIN__
-002051f4 R __STAB_END__
-002051f5 R __STABSTR_BEGIN__
-002089c8 R __STABSTR_END__
+00205200 R __STAB_END__
+00205201 R __STABSTR_BEGIN__
+00208a0b R __STABSTR_END__
 00800020 T _start
 00800031 t args_exist
 00800038 T _main
@@ -101,8 +101,8 @@
 00801fc3 T sys_free_user_mem
 00801fdf T sys_allocate_user_mem
 00801ffb T sys_env_set_priority
-00802018 T __udivdi3
-00802128 T __umoddi3
+0080201c T __udivdi3
+0080212c T __umoddi3
 00802780 r error_string
 00803000 D printStats
 00803004 D binaryname

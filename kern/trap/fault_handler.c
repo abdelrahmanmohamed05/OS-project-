@@ -162,7 +162,6 @@ void fault_handler(struct Trapframe *tf)
 		if (userTrap)
 		{
 			/*============================================================================================*/
-			//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #2 Check for invalid pointers
 			//(e.g. pointing to unmarked user heap page, kernel or wrong access rights),
 			//your code is here
 			// 1. Check if pointing to kernel space
@@ -262,7 +261,6 @@ void table_fault_handler(struct Env * curenv, uint32 fault_va)
  */
 int get_optimal_num_faults(struct WS_List *initWorkingSet, int maxWSSize, struct PageRef_List *pageReferences)
 {
-	//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #2 get_optimal_num_faults
 	// IMPORTANT: This function SHOULD NOT change any of the given lists
 #if !USE_KHEAP
 	panic("get_optimal_num_faults(): requires USE_KHEAP");
@@ -389,7 +387,6 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 #endif
 	if(wsSize < (faulted_env->page_WS_max_size))
 	{
-		//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #3 placement
 		//Your code is here
 		//Comment the following line
 		//panic("page_fault_handler().PLACEMENT is not implemented yet...!!");
@@ -426,7 +423,6 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 	{
 		if (isPageReplacmentAlgorithmOPTIMAL())
 		{
-			//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #1 Optimal Reference Stream
           #if USE_KHEAP
 			// Allocate a new reference element and append it to the stream list
 			struct PageRefElement *ref_elem = kmalloc(sizeof(struct PageRefElement));
@@ -443,7 +439,6 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 		}
 		else if (isPageReplacmentAlgorithmCLOCK())
 		{
-			//TODO: [PROJECT'25.IM#1] FAULT HANDLER II - #3 Clock Replacement
         #if USE_KHEAP
             if (faulted_env->page_last_WS_element == NULL)
 			{
@@ -531,7 +526,6 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 		}
 		else if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_TIME_APPROX))
 		{
-			//TODO: [PROJECT'25.IM#6] FAULT HANDLER II - #2 LRU Aging Replacement
 			            //Your code is here
 			            //Comment the following line
 
@@ -648,7 +642,6 @@ void page_fault_handler(struct Env * faulted_env, uint32 fault_va)
 
 		else if (isPageReplacmentAlgorithmModifiedCLOCK())
 		{
-			//TODO: [PROJECT'25.IM#6] FAULT HANDLER II - #3 Modified Clock Replacement
 			            //Your code is here
 			            //Comment the following line
 		#if USE_KHEAP

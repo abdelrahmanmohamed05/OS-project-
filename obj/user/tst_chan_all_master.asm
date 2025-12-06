@@ -138,7 +138,7 @@ _main(void)
 		env_sleep(1000);
   80010d:	83 ec 0c             	sub    $0xc,%esp
   800110:	68 e8 03 00 00       	push   $0x3e8
-  800115:	e8 ca 1b 00 00       	call   801ce4 <env_sleep>
+  800115:	e8 cb 1b 00 00       	call   801ce5 <env_sleep>
   80011a:	83 c4 10             	add    $0x10,%esp
 		if (cnt == numOfSlaves)
   80011d:	8b 45 ec             	mov    -0x14(%ebp),%eax
@@ -198,7 +198,7 @@ _main(void)
 		env_sleep(1000);
   80017f:	83 ec 0c             	sub    $0xc,%esp
   800182:	68 e8 03 00 00       	push   $0x3e8
-  800187:	e8 58 1b 00 00       	call   801ce4 <env_sleep>
+  800187:	e8 59 1b 00 00       	call   801ce5 <env_sleep>
   80018c:	83 c4 10             	add    $0x10,%esp
 		if (cnt == numOfSlaves)
   80018f:	8b 45 ec             	mov    -0x14(%ebp),%eax
@@ -263,13 +263,13 @@ libmain(int argc, char **argv)
 	myEnv = &(envs[envIndex]);
   8001e0:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   8001e3:	89 d0                	mov    %edx,%eax
-  8001e5:	c1 e0 02             	shl    $0x2,%eax
+  8001e5:	c1 e0 03             	shl    $0x3,%eax
   8001e8:	01 d0                	add    %edx,%eax
-  8001ea:	c1 e0 03             	shl    $0x3,%eax
+  8001ea:	c1 e0 02             	shl    $0x2,%eax
   8001ed:	01 d0                	add    %edx,%eax
-  8001ef:	8d 14 c5 00 00 00 00 	lea    0x0(,%eax,8),%edx
+  8001ef:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
   8001f6:	01 d0                	add    %edx,%eax
-  8001f8:	c1 e0 02             	shl    $0x2,%eax
+  8001f8:	c1 e0 03             	shl    $0x3,%eax
   8001fb:	05 00 00 c0 ee       	add    $0xeec00000,%eax
   800200:	a3 20 30 80 00       	mov    %eax,0x803020
 
@@ -359,9 +359,9 @@ libmain(int argc, char **argv)
 			{
 				cprintf("Num of PAGE faults = %d, modif = %d\n", myEnv->pageFaultsCounter, myEnv->nModifiedPages);
   8002c3:	a1 20 30 80 00       	mov    0x803020,%eax
-  8002c8:	8b 90 a8 05 00 00    	mov    0x5a8(%eax),%edx
+  8002c8:	8b 90 ac 05 00 00    	mov    0x5ac(%eax),%edx
   8002ce:	a1 20 30 80 00       	mov    0x803020,%eax
-  8002d3:	8b 80 98 05 00 00    	mov    0x598(%eax),%eax
+  8002d3:	8b 80 9c 05 00 00    	mov    0x59c(%eax),%eax
   8002d9:	83 ec 04             	sub    $0x4,%esp
   8002dc:	52                   	push   %edx
   8002dd:	50                   	push   %eax
@@ -370,11 +370,11 @@ libmain(int argc, char **argv)
   8002e8:	83 c4 10             	add    $0x10,%esp
 				cprintf("# PAGE IN (from disk) = %d, # PAGE OUT (on disk) = %d, # NEW PAGE ADDED (on disk) = %d\n", myEnv->nPageIn, myEnv->nPageOut,myEnv->nNewPageAdded);
   8002eb:	a1 20 30 80 00       	mov    0x803020,%eax
-  8002f0:	8b 88 bc 05 00 00    	mov    0x5bc(%eax),%ecx
+  8002f0:	8b 88 c0 05 00 00    	mov    0x5c0(%eax),%ecx
   8002f6:	a1 20 30 80 00       	mov    0x803020,%eax
-  8002fb:	8b 90 b8 05 00 00    	mov    0x5b8(%eax),%edx
+  8002fb:	8b 90 bc 05 00 00    	mov    0x5bc(%eax),%edx
   800301:	a1 20 30 80 00       	mov    0x803020,%eax
-  800306:	8b 80 b4 05 00 00    	mov    0x5b4(%eax),%eax
+  800306:	8b 80 b8 05 00 00    	mov    0x5b8(%eax),%eax
   80030c:	51                   	push   %ecx
   80030d:	52                   	push   %edx
   80030e:	50                   	push   %eax
@@ -385,7 +385,7 @@ libmain(int argc, char **argv)
 			//cprintf("Num of freeing scarce memory = %d, freeing full working set = %d\n", myEnv->freeingScarceMemCounter, myEnv->freeingFullWSCounter);
 			cprintf("Num of clocks = %d\n", myEnv->nClocks);
   80031c:	a1 20 30 80 00       	mov    0x803020,%eax
-  800321:	8b 80 c0 05 00 00    	mov    0x5c0(%eax),%eax
+  800321:	8b 80 c4 05 00 00    	mov    0x5c4(%eax),%eax
   800327:	83 ec 08             	sub    $0x8,%esp
   80032a:	50                   	push   %eax
   80032b:	68 f8 22 80 00       	push   $0x8022f8
@@ -1850,12 +1850,12 @@ void readline(const char *prompt, char* buf)
 	echoing = iscons(0);
   800d4c:	83 ec 0c             	sub    $0xc,%esp
   800d4f:	6a 00                	push   $0x0
-  800d51:	e8 7e 10 00 00       	call   801dd4 <iscons>
+  800d51:	e8 7f 10 00 00       	call   801dd5 <iscons>
   800d56:	83 c4 10             	add    $0x10,%esp
   800d59:	89 45 f0             	mov    %eax,-0x10(%ebp)
 	while (1) {
 		c = getchar();
-  800d5c:	e8 60 10 00 00       	call   801dc1 <getchar>
+  800d5c:	e8 61 10 00 00       	call   801dc2 <getchar>
   800d61:	89 45 ec             	mov    %eax,-0x14(%ebp)
 		if (c < 0) {
   800d64:	83 7d ec 00          	cmpl   $0x0,-0x14(%ebp)
@@ -1882,7 +1882,7 @@ void readline(const char *prompt, char* buf)
 				cputchar(c);
   800da1:	83 ec 0c             	sub    $0xc,%esp
   800da4:	ff 75 ec             	pushl  -0x14(%ebp)
-  800da7:	e8 f6 0f 00 00       	call   801da2 <cputchar>
+  800da7:	e8 f7 0f 00 00       	call   801da3 <cputchar>
   800dac:	83 c4 10             	add    $0x10,%esp
 			buf[i++] = c;
   800daf:	8b 45 f4             	mov    -0xc(%ebp),%eax
@@ -1905,7 +1905,7 @@ void readline(const char *prompt, char* buf)
 				cputchar(c);
   800dd8:	83 ec 0c             	sub    $0xc,%esp
   800ddb:	ff 75 ec             	pushl  -0x14(%ebp)
-  800dde:	e8 bf 0f 00 00       	call   801da2 <cputchar>
+  800dde:	e8 c0 0f 00 00       	call   801da3 <cputchar>
   800de3:	83 c4 10             	add    $0x10,%esp
 
 			i--;
@@ -1922,7 +1922,7 @@ void readline(const char *prompt, char* buf)
 				cputchar(c);
   800e01:	83 ec 0c             	sub    $0xc,%esp
   800e04:	ff 75 ec             	pushl  -0x14(%ebp)
-  800e07:	e8 96 0f 00 00       	call   801da2 <cputchar>
+  800e07:	e8 97 0f 00 00       	call   801da3 <cputchar>
   800e0c:	83 c4 10             	add    $0x10,%esp
 
 			buf[i] = 0;
@@ -1979,12 +1979,12 @@ void atomic_readline(const char *prompt, char* buf)
 		echoing = iscons(0);
   800e50:	83 ec 0c             	sub    $0xc,%esp
   800e53:	6a 00                	push   $0x0
-  800e55:	e8 7a 0f 00 00       	call   801dd4 <iscons>
+  800e55:	e8 7b 0f 00 00       	call   801dd5 <iscons>
   800e5a:	83 c4 10             	add    $0x10,%esp
   800e5d:	89 45 f0             	mov    %eax,-0x10(%ebp)
 		while (1) {
 			c = getchar();
-  800e60:	e8 5c 0f 00 00       	call   801dc1 <getchar>
+  800e60:	e8 5d 0f 00 00       	call   801dc2 <getchar>
   800e65:	89 45 ec             	mov    %eax,-0x14(%ebp)
 			if (c < 0) {
   800e68:	83 7d ec 00          	cmpl   $0x0,-0x14(%ebp)
@@ -2011,7 +2011,7 @@ void atomic_readline(const char *prompt, char* buf)
 					cputchar(c);
   800ea5:	83 ec 0c             	sub    $0xc,%esp
   800ea8:	ff 75 ec             	pushl  -0x14(%ebp)
-  800eab:	e8 f2 0e 00 00       	call   801da2 <cputchar>
+  800eab:	e8 f3 0e 00 00       	call   801da3 <cputchar>
   800eb0:	83 c4 10             	add    $0x10,%esp
 				buf[i++] = c;
   800eb3:	8b 45 f4             	mov    -0xc(%ebp),%eax
@@ -2034,7 +2034,7 @@ void atomic_readline(const char *prompt, char* buf)
 					cputchar(c);
   800edc:	83 ec 0c             	sub    $0xc,%esp
   800edf:	ff 75 ec             	pushl  -0x14(%ebp)
-  800ee2:	e8 bb 0e 00 00       	call   801da2 <cputchar>
+  800ee2:	e8 bc 0e 00 00       	call   801da3 <cputchar>
   800ee7:	83 c4 10             	add    $0x10,%esp
 				i--;
   800eea:	ff 4d f4             	decl   -0xc(%ebp)
@@ -2050,7 +2050,7 @@ void atomic_readline(const char *prompt, char* buf)
 					cputchar(c);
   800f05:	83 ec 0c             	sub    $0xc,%esp
   800f08:	ff 75 ec             	pushl  -0x14(%ebp)
-  800f0b:	e8 92 0e 00 00       	call   801da2 <cputchar>
+  800f0b:	e8 93 0e 00 00       	call   801da3 <cputchar>
   800f10:	83 c4 10             	add    $0x10,%esp
 				buf[i] = 0;
   800f13:	8b 55 f4             	mov    -0xc(%ebp),%edx
@@ -4487,213 +4487,218 @@ void sys_env_set_priority(int32 envID, int priority)
 {
   801cc7:	55                   	push   %ebp
   801cc8:	89 e5                	mov    %esp,%ebp
-  801cca:	83 ec 08             	sub    $0x8,%esp
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 System Calls - Add suitable code here
-	//Your code is here
-	//Comment the following line
-	panic("sys_env_set_priority() is not implemented yet...!!");
-  801ccd:	83 ec 04             	sub    $0x4,%esp
-  801cd0:	68 5c 28 80 00       	push   $0x80285c
-  801cd5:	68 25 01 00 00       	push   $0x125
-  801cda:	68 8f 28 80 00       	push   $0x80288f
-  801cdf:	e8 9b e6 ff ff       	call   80037f <_panic>
+	syscall(SYS_env_set_priority, envID, priority, 0, 0, 0);
+  801cca:	8b 55 0c             	mov    0xc(%ebp),%edx
+  801ccd:	8b 45 08             	mov    0x8(%ebp),%eax
+  801cd0:	6a 00                	push   $0x0
+  801cd2:	6a 00                	push   $0x0
+  801cd4:	6a 00                	push   $0x0
+  801cd6:	52                   	push   %edx
+  801cd7:	50                   	push   %eax
+  801cd8:	6a 2e                	push   $0x2e
+  801cda:	e8 5b fa ff ff       	call   80173a <syscall>
+  801cdf:	83 c4 18             	add    $0x18,%esp
+}
+  801ce2:	90                   	nop
+  801ce3:	c9                   	leave  
+  801ce4:	c3                   	ret    
 
-00801ce4 <env_sleep>:
+00801ce5 <env_sleep>:
 #include <inc/lib.h>
 #include <inc/timerreg.h>
 
 void
 env_sleep(uint32 approxMilliSeconds)
 {
-  801ce4:	55                   	push   %ebp
-  801ce5:	89 e5                	mov    %esp,%ebp
-  801ce7:	83 ec 30             	sub    $0x30,%esp
+  801ce5:	55                   	push   %ebp
+  801ce6:	89 e5                	mov    %esp,%ebp
+  801ce8:	83 ec 30             	sub    $0x30,%esp
 //	cprintf("%s go to sleep...\n", myEnv->prog_name);
 	uint32 time_in_cycles=approxMilliSeconds*CYCLES_PER_MILLISEC;
-  801cea:	8b 55 08             	mov    0x8(%ebp),%edx
-  801ced:	89 d0                	mov    %edx,%eax
-  801cef:	c1 e0 02             	shl    $0x2,%eax
-  801cf2:	01 d0                	add    %edx,%eax
-  801cf4:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801cfb:	01 d0                	add    %edx,%eax
-  801cfd:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801d04:	01 d0                	add    %edx,%eax
-  801d06:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801d0d:	01 d0                	add    %edx,%eax
-  801d0f:	c1 e0 04             	shl    $0x4,%eax
-  801d12:	89 45 f8             	mov    %eax,-0x8(%ebp)
+  801ceb:	8b 55 08             	mov    0x8(%ebp),%edx
+  801cee:	89 d0                	mov    %edx,%eax
+  801cf0:	c1 e0 02             	shl    $0x2,%eax
+  801cf3:	01 d0                	add    %edx,%eax
+  801cf5:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801cfc:	01 d0                	add    %edx,%eax
+  801cfe:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801d05:	01 d0                	add    %edx,%eax
+  801d07:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801d0e:	01 d0                	add    %edx,%eax
+  801d10:	c1 e0 04             	shl    $0x4,%eax
+  801d13:	89 45 f8             	mov    %eax,-0x8(%ebp)
 	uint32 cycles_counter =0;
-  801d15:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  801d16:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
 
 static inline __attribute__((always_inline)) struct uint64 get_virtual_time_user()
 {
 	struct uint64 result;
 
 	__asm __volatile("rdtsc\n"
-  801d1c:	0f 31                	rdtsc  
-  801d1e:	89 45 e8             	mov    %eax,-0x18(%ebp)
-  801d21:	89 55 ec             	mov    %edx,-0x14(%ebp)
+  801d1d:	0f 31                	rdtsc  
+  801d1f:	89 45 e8             	mov    %eax,-0x18(%ebp)
+  801d22:	89 55 ec             	mov    %edx,-0x14(%ebp)
 	: "=a" (result.low), "=d" (result.hi)
 	);
 
 	return result;
-  801d24:	8b 45 e8             	mov    -0x18(%ebp),%eax
-  801d27:	8b 55 ec             	mov    -0x14(%ebp),%edx
-  801d2a:	89 45 f0             	mov    %eax,-0x10(%ebp)
-  801d2d:	89 55 f4             	mov    %edx,-0xc(%ebp)
+  801d25:	8b 45 e8             	mov    -0x18(%ebp),%eax
+  801d28:	8b 55 ec             	mov    -0x14(%ebp),%edx
+  801d2b:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  801d2e:	89 55 f4             	mov    %edx,-0xc(%ebp)
 
 	/*2024*/ //USE A USER-SIDE VERSION OF THIS FUNCTION TO AVOID SLOW-DOWN THE PERFORMANCE DUE SYS_CALL (el7 :))
 	//struct uint64 baseTime = sys_get_virtual_time() ;
 	struct uint64 baseTime = get_virtual_time_user() ;
 	while(cycles_counter<time_in_cycles)
-  801d30:	eb 46                	jmp    801d78 <env_sleep+0x94>
+  801d31:	eb 46                	jmp    801d79 <env_sleep+0x94>
 
 static inline __attribute__((always_inline)) struct uint64 get_virtual_time_user()
 {
 	struct uint64 result;
 
 	__asm __volatile("rdtsc\n"
-  801d32:	0f 31                	rdtsc  
-  801d34:	89 45 d0             	mov    %eax,-0x30(%ebp)
-  801d37:	89 55 d4             	mov    %edx,-0x2c(%ebp)
+  801d33:	0f 31                	rdtsc  
+  801d35:	89 45 d0             	mov    %eax,-0x30(%ebp)
+  801d38:	89 55 d4             	mov    %edx,-0x2c(%ebp)
 	: "=a" (result.low), "=d" (result.hi)
 	);
 
 	return result;
-  801d3a:	8b 45 d0             	mov    -0x30(%ebp),%eax
-  801d3d:	8b 55 d4             	mov    -0x2c(%ebp),%edx
-  801d40:	89 45 e0             	mov    %eax,-0x20(%ebp)
-  801d43:	89 55 e4             	mov    %edx,-0x1c(%ebp)
+  801d3b:	8b 45 d0             	mov    -0x30(%ebp),%eax
+  801d3e:	8b 55 d4             	mov    -0x2c(%ebp),%edx
+  801d41:	89 45 e0             	mov    %eax,-0x20(%ebp)
+  801d44:	89 55 e4             	mov    %edx,-0x1c(%ebp)
 
 		// update the cycles_count
 		#define M32 0xffffffff
 		// subtract basetime from current time
 		struct uint64 res;
 		res.low = (currentTime.low - baseTime.low) & M32;
-  801d46:	8b 55 e0             	mov    -0x20(%ebp),%edx
-  801d49:	8b 45 f0             	mov    -0x10(%ebp),%eax
-  801d4c:	29 c2                	sub    %eax,%edx
-  801d4e:	89 d0                	mov    %edx,%eax
-  801d50:	89 45 d8             	mov    %eax,-0x28(%ebp)
+  801d47:	8b 55 e0             	mov    -0x20(%ebp),%edx
+  801d4a:	8b 45 f0             	mov    -0x10(%ebp),%eax
+  801d4d:	29 c2                	sub    %eax,%edx
+  801d4f:	89 d0                	mov    %edx,%eax
+  801d51:	89 45 d8             	mov    %eax,-0x28(%ebp)
 		res.hi = (currentTime.hi - baseTime.hi - (res.low > currentTime.low)) & M32;
-  801d53:	8b 55 e4             	mov    -0x1c(%ebp),%edx
-  801d56:	8b 45 f4             	mov    -0xc(%ebp),%eax
-  801d59:	89 d1                	mov    %edx,%ecx
-  801d5b:	29 c1                	sub    %eax,%ecx
-  801d5d:	8b 55 d8             	mov    -0x28(%ebp),%edx
-  801d60:	8b 45 e0             	mov    -0x20(%ebp),%eax
-  801d63:	39 c2                	cmp    %eax,%edx
-  801d65:	0f 97 c0             	seta   %al
-  801d68:	0f b6 c0             	movzbl %al,%eax
-  801d6b:	29 c1                	sub    %eax,%ecx
-  801d6d:	89 c8                	mov    %ecx,%eax
-  801d6f:	89 45 dc             	mov    %eax,-0x24(%ebp)
+  801d54:	8b 55 e4             	mov    -0x1c(%ebp),%edx
+  801d57:	8b 45 f4             	mov    -0xc(%ebp),%eax
+  801d5a:	89 d1                	mov    %edx,%ecx
+  801d5c:	29 c1                	sub    %eax,%ecx
+  801d5e:	8b 55 d8             	mov    -0x28(%ebp),%edx
+  801d61:	8b 45 e0             	mov    -0x20(%ebp),%eax
+  801d64:	39 c2                	cmp    %eax,%edx
+  801d66:	0f 97 c0             	seta   %al
+  801d69:	0f b6 c0             	movzbl %al,%eax
+  801d6c:	29 c1                	sub    %eax,%ecx
+  801d6e:	89 c8                	mov    %ecx,%eax
+  801d70:	89 45 dc             	mov    %eax,-0x24(%ebp)
 
 		//update cycles_count with result
 		cycles_counter = res.low;
-  801d72:	8b 45 d8             	mov    -0x28(%ebp),%eax
-  801d75:	89 45 fc             	mov    %eax,-0x4(%ebp)
+  801d73:	8b 45 d8             	mov    -0x28(%ebp),%eax
+  801d76:	89 45 fc             	mov    %eax,-0x4(%ebp)
 	uint32 cycles_counter =0;
 
 	/*2024*/ //USE A USER-SIDE VERSION OF THIS FUNCTION TO AVOID SLOW-DOWN THE PERFORMANCE DUE SYS_CALL (el7 :))
 	//struct uint64 baseTime = sys_get_virtual_time() ;
 	struct uint64 baseTime = get_virtual_time_user() ;
 	while(cycles_counter<time_in_cycles)
-  801d78:	8b 45 fc             	mov    -0x4(%ebp),%eax
-  801d7b:	3b 45 f8             	cmp    -0x8(%ebp),%eax
-  801d7e:	72 b2                	jb     801d32 <env_sleep+0x4e>
+  801d79:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801d7c:	3b 45 f8             	cmp    -0x8(%ebp),%eax
+  801d7f:	72 b2                	jb     801d33 <env_sleep+0x4e>
 //				,cycles_counter
 //				);
 	}
 	//cprintf("%s [%d] wake up now!\n", myEnv->prog_name, myEnv->env_id);
 
 }
-  801d80:	90                   	nop
-  801d81:	c9                   	leave  
-  801d82:	c3                   	ret    
+  801d81:	90                   	nop
+  801d82:	c9                   	leave  
+  801d83:	c3                   	ret    
 
-00801d83 <busy_wait>:
+00801d84 <busy_wait>:
 
 //2017
 uint32 busy_wait(uint32 loopMax)
 {
-  801d83:	55                   	push   %ebp
-  801d84:	89 e5                	mov    %esp,%ebp
-  801d86:	83 ec 10             	sub    $0x10,%esp
+  801d84:	55                   	push   %ebp
+  801d85:	89 e5                	mov    %esp,%ebp
+  801d87:	83 ec 10             	sub    $0x10,%esp
 	uint32 i = 0 ;
-  801d89:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  801d8a:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
 	while (i < loopMax) i++;
-  801d90:	eb 03                	jmp    801d95 <busy_wait+0x12>
-  801d92:	ff 45 fc             	incl   -0x4(%ebp)
-  801d95:	8b 45 fc             	mov    -0x4(%ebp),%eax
-  801d98:	3b 45 08             	cmp    0x8(%ebp),%eax
-  801d9b:	72 f5                	jb     801d92 <busy_wait+0xf>
+  801d91:	eb 03                	jmp    801d96 <busy_wait+0x12>
+  801d93:	ff 45 fc             	incl   -0x4(%ebp)
+  801d96:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801d99:	3b 45 08             	cmp    0x8(%ebp),%eax
+  801d9c:	72 f5                	jb     801d93 <busy_wait+0xf>
 	return i;
-  801d9d:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801d9e:	8b 45 fc             	mov    -0x4(%ebp),%eax
 }
-  801da0:	c9                   	leave  
-  801da1:	c3                   	ret    
+  801da1:	c9                   	leave  
+  801da2:	c3                   	ret    
 
-00801da2 <cputchar>:
+00801da3 <cputchar>:
 #include <inc/lib.h>
 
 
 void
 cputchar(int ch)
 {
-  801da2:	55                   	push   %ebp
-  801da3:	89 e5                	mov    %esp,%ebp
-  801da5:	83 ec 18             	sub    $0x18,%esp
+  801da3:	55                   	push   %ebp
+  801da4:	89 e5                	mov    %esp,%ebp
+  801da6:	83 ec 18             	sub    $0x18,%esp
 	char c = ch;
-  801da8:	8b 45 08             	mov    0x8(%ebp),%eax
-  801dab:	88 45 f7             	mov    %al,-0x9(%ebp)
+  801da9:	8b 45 08             	mov    0x8(%ebp),%eax
+  801dac:	88 45 f7             	mov    %al,-0x9(%ebp)
 
 	// Unlike standard Unix's putchar,
 	// the cputchar function _always_ outputs to the system console.
 	//sys_cputs(&c, 1);
 
 	sys_cputc(c);
-  801dae:	0f be 45 f7          	movsbl -0x9(%ebp),%eax
-  801db2:	83 ec 0c             	sub    $0xc,%esp
-  801db5:	50                   	push   %eax
-  801db6:	e8 36 fb ff ff       	call   8018f1 <sys_cputc>
-  801dbb:	83 c4 10             	add    $0x10,%esp
+  801daf:	0f be 45 f7          	movsbl -0x9(%ebp),%eax
+  801db3:	83 ec 0c             	sub    $0xc,%esp
+  801db6:	50                   	push   %eax
+  801db7:	e8 35 fb ff ff       	call   8018f1 <sys_cputc>
+  801dbc:	83 c4 10             	add    $0x10,%esp
 }
-  801dbe:	90                   	nop
-  801dbf:	c9                   	leave  
-  801dc0:	c3                   	ret    
+  801dbf:	90                   	nop
+  801dc0:	c9                   	leave  
+  801dc1:	c3                   	ret    
 
-00801dc1 <getchar>:
+00801dc2 <getchar>:
 
 
 int
 getchar(void)
 {
-  801dc1:	55                   	push   %ebp
-  801dc2:	89 e5                	mov    %esp,%ebp
-  801dc4:	83 ec 18             	sub    $0x18,%esp
+  801dc2:	55                   	push   %ebp
+  801dc3:	89 e5                	mov    %esp,%ebp
+  801dc5:	83 ec 18             	sub    $0x18,%esp
 	int c =sys_cgetc();
-  801dc7:	e8 c4 f9 ff ff       	call   801790 <sys_cgetc>
-  801dcc:	89 45 f4             	mov    %eax,-0xc(%ebp)
+  801dc8:	e8 c3 f9 ff ff       	call   801790 <sys_cgetc>
+  801dcd:	89 45 f4             	mov    %eax,-0xc(%ebp)
 	return c;
-  801dcf:	8b 45 f4             	mov    -0xc(%ebp),%eax
+  801dd0:	8b 45 f4             	mov    -0xc(%ebp),%eax
 }
-  801dd2:	c9                   	leave  
-  801dd3:	c3                   	ret    
+  801dd3:	c9                   	leave  
+  801dd4:	c3                   	ret    
 
-00801dd4 <iscons>:
+00801dd5 <iscons>:
 
 int iscons(int fdnum)
 {
-  801dd4:	55                   	push   %ebp
-  801dd5:	89 e5                	mov    %esp,%ebp
+  801dd5:	55                   	push   %ebp
+  801dd6:	89 e5                	mov    %esp,%ebp
 	// used by readline
 	return 1;
-  801dd7:	b8 01 00 00 00       	mov    $0x1,%eax
+  801dd8:	b8 01 00 00 00       	mov    $0x1,%eax
 }
-  801ddc:	5d                   	pop    %ebp
-  801ddd:	c3                   	ret    
-  801dde:	66 90                	xchg   %ax,%ax
+  801ddd:	5d                   	pop    %ebp
+  801dde:	c3                   	ret    
+  801ddf:	90                   	nop
 
 00801de0 <__udivdi3>:
   801de0:	55                   	push   %ebp

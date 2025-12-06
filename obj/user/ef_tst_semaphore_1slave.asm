@@ -62,7 +62,7 @@ _main(void)
   800067:	68 01 1e 80 00       	push   $0x801e01
   80006c:	ff 75 f4             	pushl  -0xc(%ebp)
   80006f:	50                   	push   %eax
-  800070:	e8 e2 19 00 00       	call   801a57 <get_semaphore>
+  800070:	e8 e3 19 00 00       	call   801a58 <get_semaphore>
   800075:	83 c4 0c             	add    $0xc,%esp
 	struct semaphore depend1 = get_semaphore(parentenvID, "depend1");
   800078:	8d 45 e4             	lea    -0x1c(%ebp),%eax
@@ -70,13 +70,13 @@ _main(void)
   80007e:	68 05 1e 80 00       	push   $0x801e05
   800083:	ff 75 f4             	pushl  -0xc(%ebp)
   800086:	50                   	push   %eax
-  800087:	e8 cb 19 00 00       	call   801a57 <get_semaphore>
+  800087:	e8 cc 19 00 00       	call   801a58 <get_semaphore>
   80008c:	83 c4 0c             	add    $0xc,%esp
 
 	wait_semaphore(cs1);
   80008f:	83 ec 0c             	sub    $0xc,%esp
   800092:	ff 75 e8             	pushl  -0x18(%ebp)
-  800095:	e8 d7 19 00 00       	call   801a71 <wait_semaphore>
+  800095:	e8 d8 19 00 00       	call   801a72 <wait_semaphore>
   80009a:	83 c4 10             	add    $0x10,%esp
 	{
 		cprintf("%d: inside the critical section\n", id) ;
@@ -94,7 +94,7 @@ _main(void)
 		int sem1val = semaphore_count(cs1);
   8000c3:	83 ec 0c             	sub    $0xc,%esp
   8000c6:	ff 75 e8             	pushl  -0x18(%ebp)
-  8000c9:	e8 d7 19 00 00       	call   801aa5 <semaphore_count>
+  8000c9:	e8 d8 19 00 00       	call   801aa6 <semaphore_count>
   8000ce:	83 c4 10             	add    $0x10,%esp
   8000d1:	89 45 ec             	mov    %eax,-0x14(%ebp)
 		if (sem1val > 0)
@@ -109,13 +109,13 @@ _main(void)
 		env_sleep(1000) ;
   8000ee:	83 ec 0c             	sub    $0xc,%esp
   8000f1:	68 e8 03 00 00       	push   $0x3e8
-  8000f6:	e8 b5 19 00 00       	call   801ab0 <env_sleep>
+  8000f6:	e8 b6 19 00 00       	call   801ab1 <env_sleep>
   8000fb:	83 c4 10             	add    $0x10,%esp
 	}
 	signal_semaphore(cs1);
   8000fe:	83 ec 0c             	sub    $0xc,%esp
   800101:	ff 75 e8             	pushl  -0x18(%ebp)
-  800104:	e8 82 19 00 00       	call   801a8b <signal_semaphore>
+  800104:	e8 83 19 00 00       	call   801a8c <signal_semaphore>
   800109:	83 c4 10             	add    $0x10,%esp
 
 	cprintf("%d: after the critical section\n", id);
@@ -127,7 +127,7 @@ _main(void)
 	signal_semaphore(depend1);
   80011f:	83 ec 0c             	sub    $0xc,%esp
   800122:	ff 75 e4             	pushl  -0x1c(%ebp)
-  800125:	e8 61 19 00 00       	call   801a8b <signal_semaphore>
+  800125:	e8 62 19 00 00       	call   801a8c <signal_semaphore>
   80012a:	83 c4 10             	add    $0x10,%esp
 	return;
   80012d:	90                   	nop
@@ -156,13 +156,13 @@ libmain(int argc, char **argv)
 	myEnv = &(envs[envIndex]);
   800141:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   800144:	89 d0                	mov    %edx,%eax
-  800146:	c1 e0 02             	shl    $0x2,%eax
+  800146:	c1 e0 03             	shl    $0x3,%eax
   800149:	01 d0                	add    %edx,%eax
-  80014b:	c1 e0 03             	shl    $0x3,%eax
+  80014b:	c1 e0 02             	shl    $0x2,%eax
   80014e:	01 d0                	add    %edx,%eax
-  800150:	8d 14 c5 00 00 00 00 	lea    0x0(,%eax,8),%edx
+  800150:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
   800157:	01 d0                	add    %edx,%eax
-  800159:	c1 e0 02             	shl    $0x2,%eax
+  800159:	c1 e0 03             	shl    $0x3,%eax
   80015c:	05 00 00 c0 ee       	add    $0xeec00000,%eax
   800161:	a3 20 30 80 00       	mov    %eax,0x803020
 
@@ -252,9 +252,9 @@ libmain(int argc, char **argv)
 			{
 				cprintf("Num of PAGE faults = %d, modif = %d\n", myEnv->pageFaultsCounter, myEnv->nModifiedPages);
   800224:	a1 20 30 80 00       	mov    0x803020,%eax
-  800229:	8b 90 a8 05 00 00    	mov    0x5a8(%eax),%edx
+  800229:	8b 90 ac 05 00 00    	mov    0x5ac(%eax),%edx
   80022f:	a1 20 30 80 00       	mov    0x803020,%eax
-  800234:	8b 80 98 05 00 00    	mov    0x598(%eax),%eax
+  800234:	8b 80 9c 05 00 00    	mov    0x59c(%eax),%eax
   80023a:	83 ec 04             	sub    $0x4,%esp
   80023d:	52                   	push   %edx
   80023e:	50                   	push   %eax
@@ -263,11 +263,11 @@ libmain(int argc, char **argv)
   800249:	83 c4 10             	add    $0x10,%esp
 				cprintf("# PAGE IN (from disk) = %d, # PAGE OUT (on disk) = %d, # NEW PAGE ADDED (on disk) = %d\n", myEnv->nPageIn, myEnv->nPageOut,myEnv->nNewPageAdded);
   80024c:	a1 20 30 80 00       	mov    0x803020,%eax
-  800251:	8b 88 bc 05 00 00    	mov    0x5bc(%eax),%ecx
+  800251:	8b 88 c0 05 00 00    	mov    0x5c0(%eax),%ecx
   800257:	a1 20 30 80 00       	mov    0x803020,%eax
-  80025c:	8b 90 b8 05 00 00    	mov    0x5b8(%eax),%edx
+  80025c:	8b 90 bc 05 00 00    	mov    0x5bc(%eax),%edx
   800262:	a1 20 30 80 00       	mov    0x803020,%eax
-  800267:	8b 80 b4 05 00 00    	mov    0x5b4(%eax),%eax
+  800267:	8b 80 b8 05 00 00    	mov    0x5b8(%eax),%eax
   80026d:	51                   	push   %ecx
   80026e:	52                   	push   %edx
   80026f:	50                   	push   %eax
@@ -278,7 +278,7 @@ libmain(int argc, char **argv)
 			//cprintf("Num of freeing scarce memory = %d, freeing full working set = %d\n", myEnv->freeingScarceMemCounter, myEnv->freeingFullWSCounter);
 			cprintf("Num of clocks = %d\n", myEnv->nClocks);
   80027d:	a1 20 30 80 00       	mov    0x803020,%eax
-  800282:	8b 80 c0 05 00 00    	mov    0x5c0(%eax),%eax
+  800282:	8b 80 c4 05 00 00    	mov    0x5c4(%eax),%eax
   800288:	83 ec 08             	sub    $0x8,%esp
   80028b:	50                   	push   %eax
   80028c:	68 bc 1f 80 00       	push   $0x801fbc
@@ -4122,228 +4122,233 @@ void sys_env_set_priority(int32 envID, int priority)
 {
   801a20:	55                   	push   %ebp
   801a21:	89 e5                	mov    %esp,%ebp
-  801a23:	83 ec 08             	sub    $0x8,%esp
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 System Calls - Add suitable code here
-	//Your code is here
-	//Comment the following line
-	panic("sys_env_set_priority() is not implemented yet...!!");
-  801a26:	83 ec 04             	sub    $0x4,%esp
-  801a29:	68 08 25 80 00       	push   $0x802508
-  801a2e:	68 25 01 00 00       	push   $0x125
-  801a33:	68 3b 25 80 00       	push   $0x80253b
-  801a38:	e8 a3 e8 ff ff       	call   8002e0 <_panic>
+	syscall(SYS_env_set_priority, envID, priority, 0, 0, 0);
+  801a23:	8b 55 0c             	mov    0xc(%ebp),%edx
+  801a26:	8b 45 08             	mov    0x8(%ebp),%eax
+  801a29:	6a 00                	push   $0x0
+  801a2b:	6a 00                	push   $0x0
+  801a2d:	6a 00                	push   $0x0
+  801a2f:	52                   	push   %edx
+  801a30:	50                   	push   %eax
+  801a31:	6a 2e                	push   $0x2e
+  801a33:	e8 5b fa ff ff       	call   801493 <syscall>
+  801a38:	83 c4 18             	add    $0x18,%esp
+}
+  801a3b:	90                   	nop
+  801a3c:	c9                   	leave  
+  801a3d:	c3                   	ret    
 
-00801a3d <create_semaphore>:
+00801a3e <create_semaphore>:
 // User-level Semaphore
 
 #include "inc/lib.h"
 
 struct semaphore create_semaphore(char *semaphoreName, uint32 value)
 {
-  801a3d:	55                   	push   %ebp
-  801a3e:	89 e5                	mov    %esp,%ebp
-  801a40:	83 ec 08             	sub    $0x8,%esp
+  801a3e:	55                   	push   %ebp
+  801a3f:	89 e5                	mov    %esp,%ebp
+  801a41:	83 ec 08             	sub    $0x8,%esp
 	panic("create_semaphore() is not implemented yet...!!");
-  801a43:	83 ec 04             	sub    $0x4,%esp
-  801a46:	68 4c 25 80 00       	push   $0x80254c
-  801a4b:	6a 07                	push   $0x7
-  801a4d:	68 7b 25 80 00       	push   $0x80257b
-  801a52:	e8 89 e8 ff ff       	call   8002e0 <_panic>
+  801a44:	83 ec 04             	sub    $0x4,%esp
+  801a47:	68 08 25 80 00       	push   $0x802508
+  801a4c:	6a 07                	push   $0x7
+  801a4e:	68 37 25 80 00       	push   $0x802537
+  801a53:	e8 88 e8 ff ff       	call   8002e0 <_panic>
 
-00801a57 <get_semaphore>:
+00801a58 <get_semaphore>:
 }
 struct semaphore get_semaphore(int32 ownerEnvID, char* semaphoreName)
 {
-  801a57:	55                   	push   %ebp
-  801a58:	89 e5                	mov    %esp,%ebp
-  801a5a:	83 ec 08             	sub    $0x8,%esp
+  801a58:	55                   	push   %ebp
+  801a59:	89 e5                	mov    %esp,%ebp
+  801a5b:	83 ec 08             	sub    $0x8,%esp
 	panic("get_semaphore() is not implemented yet...!!");
-  801a5d:	83 ec 04             	sub    $0x4,%esp
-  801a60:	68 8c 25 80 00       	push   $0x80258c
-  801a65:	6a 0b                	push   $0xb
-  801a67:	68 7b 25 80 00       	push   $0x80257b
-  801a6c:	e8 6f e8 ff ff       	call   8002e0 <_panic>
+  801a5e:	83 ec 04             	sub    $0x4,%esp
+  801a61:	68 48 25 80 00       	push   $0x802548
+  801a66:	6a 0b                	push   $0xb
+  801a68:	68 37 25 80 00       	push   $0x802537
+  801a6d:	e8 6e e8 ff ff       	call   8002e0 <_panic>
 
-00801a71 <wait_semaphore>:
+00801a72 <wait_semaphore>:
 }
 
 void wait_semaphore(struct semaphore sem)
 {
-  801a71:	55                   	push   %ebp
-  801a72:	89 e5                	mov    %esp,%ebp
-  801a74:	83 ec 08             	sub    $0x8,%esp
+  801a72:	55                   	push   %ebp
+  801a73:	89 e5                	mov    %esp,%ebp
+  801a75:	83 ec 08             	sub    $0x8,%esp
 	panic("wait_semaphore() is not implemented yet...!!");
-  801a77:	83 ec 04             	sub    $0x4,%esp
-  801a7a:	68 b8 25 80 00       	push   $0x8025b8
-  801a7f:	6a 10                	push   $0x10
-  801a81:	68 7b 25 80 00       	push   $0x80257b
-  801a86:	e8 55 e8 ff ff       	call   8002e0 <_panic>
+  801a78:	83 ec 04             	sub    $0x4,%esp
+  801a7b:	68 74 25 80 00       	push   $0x802574
+  801a80:	6a 10                	push   $0x10
+  801a82:	68 37 25 80 00       	push   $0x802537
+  801a87:	e8 54 e8 ff ff       	call   8002e0 <_panic>
 
-00801a8b <signal_semaphore>:
+00801a8c <signal_semaphore>:
 }
 
 void signal_semaphore(struct semaphore sem)
 {
-  801a8b:	55                   	push   %ebp
-  801a8c:	89 e5                	mov    %esp,%ebp
-  801a8e:	83 ec 08             	sub    $0x8,%esp
+  801a8c:	55                   	push   %ebp
+  801a8d:	89 e5                	mov    %esp,%ebp
+  801a8f:	83 ec 08             	sub    $0x8,%esp
 	panic("signal_semaphore() is not implemented yet...!!");
-  801a91:	83 ec 04             	sub    $0x4,%esp
-  801a94:	68 e8 25 80 00       	push   $0x8025e8
-  801a99:	6a 15                	push   $0x15
-  801a9b:	68 7b 25 80 00       	push   $0x80257b
-  801aa0:	e8 3b e8 ff ff       	call   8002e0 <_panic>
+  801a92:	83 ec 04             	sub    $0x4,%esp
+  801a95:	68 a4 25 80 00       	push   $0x8025a4
+  801a9a:	6a 15                	push   $0x15
+  801a9c:	68 37 25 80 00       	push   $0x802537
+  801aa1:	e8 3a e8 ff ff       	call   8002e0 <_panic>
 
-00801aa5 <semaphore_count>:
+00801aa6 <semaphore_count>:
 }
 
 int semaphore_count(struct semaphore sem)
 {
-  801aa5:	55                   	push   %ebp
-  801aa6:	89 e5                	mov    %esp,%ebp
+  801aa6:	55                   	push   %ebp
+  801aa7:	89 e5                	mov    %esp,%ebp
 	return sem.semdata->count;
-  801aa8:	8b 45 08             	mov    0x8(%ebp),%eax
-  801aab:	8b 40 10             	mov    0x10(%eax),%eax
+  801aa9:	8b 45 08             	mov    0x8(%ebp),%eax
+  801aac:	8b 40 10             	mov    0x10(%eax),%eax
 }
-  801aae:	5d                   	pop    %ebp
-  801aaf:	c3                   	ret    
+  801aaf:	5d                   	pop    %ebp
+  801ab0:	c3                   	ret    
 
-00801ab0 <env_sleep>:
+00801ab1 <env_sleep>:
 #include <inc/lib.h>
 #include <inc/timerreg.h>
 
 void
 env_sleep(uint32 approxMilliSeconds)
 {
-  801ab0:	55                   	push   %ebp
-  801ab1:	89 e5                	mov    %esp,%ebp
-  801ab3:	83 ec 30             	sub    $0x30,%esp
+  801ab1:	55                   	push   %ebp
+  801ab2:	89 e5                	mov    %esp,%ebp
+  801ab4:	83 ec 30             	sub    $0x30,%esp
 //	cprintf("%s go to sleep...\n", myEnv->prog_name);
 	uint32 time_in_cycles=approxMilliSeconds*CYCLES_PER_MILLISEC;
-  801ab6:	8b 55 08             	mov    0x8(%ebp),%edx
-  801ab9:	89 d0                	mov    %edx,%eax
-  801abb:	c1 e0 02             	shl    $0x2,%eax
-  801abe:	01 d0                	add    %edx,%eax
-  801ac0:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801ac7:	01 d0                	add    %edx,%eax
-  801ac9:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801ad0:	01 d0                	add    %edx,%eax
-  801ad2:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
-  801ad9:	01 d0                	add    %edx,%eax
-  801adb:	c1 e0 04             	shl    $0x4,%eax
-  801ade:	89 45 f8             	mov    %eax,-0x8(%ebp)
+  801ab7:	8b 55 08             	mov    0x8(%ebp),%edx
+  801aba:	89 d0                	mov    %edx,%eax
+  801abc:	c1 e0 02             	shl    $0x2,%eax
+  801abf:	01 d0                	add    %edx,%eax
+  801ac1:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801ac8:	01 d0                	add    %edx,%eax
+  801aca:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801ad1:	01 d0                	add    %edx,%eax
+  801ad3:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
+  801ada:	01 d0                	add    %edx,%eax
+  801adc:	c1 e0 04             	shl    $0x4,%eax
+  801adf:	89 45 f8             	mov    %eax,-0x8(%ebp)
 	uint32 cycles_counter =0;
-  801ae1:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  801ae2:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
 
 static inline __attribute__((always_inline)) struct uint64 get_virtual_time_user()
 {
 	struct uint64 result;
 
 	__asm __volatile("rdtsc\n"
-  801ae8:	0f 31                	rdtsc  
-  801aea:	89 45 e8             	mov    %eax,-0x18(%ebp)
-  801aed:	89 55 ec             	mov    %edx,-0x14(%ebp)
+  801ae9:	0f 31                	rdtsc  
+  801aeb:	89 45 e8             	mov    %eax,-0x18(%ebp)
+  801aee:	89 55 ec             	mov    %edx,-0x14(%ebp)
 	: "=a" (result.low), "=d" (result.hi)
 	);
 
 	return result;
-  801af0:	8b 45 e8             	mov    -0x18(%ebp),%eax
-  801af3:	8b 55 ec             	mov    -0x14(%ebp),%edx
-  801af6:	89 45 f0             	mov    %eax,-0x10(%ebp)
-  801af9:	89 55 f4             	mov    %edx,-0xc(%ebp)
+  801af1:	8b 45 e8             	mov    -0x18(%ebp),%eax
+  801af4:	8b 55 ec             	mov    -0x14(%ebp),%edx
+  801af7:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  801afa:	89 55 f4             	mov    %edx,-0xc(%ebp)
 
 	/*2024*/ //USE A USER-SIDE VERSION OF THIS FUNCTION TO AVOID SLOW-DOWN THE PERFORMANCE DUE SYS_CALL (el7 :))
 	//struct uint64 baseTime = sys_get_virtual_time() ;
 	struct uint64 baseTime = get_virtual_time_user() ;
 	while(cycles_counter<time_in_cycles)
-  801afc:	eb 46                	jmp    801b44 <env_sleep+0x94>
+  801afd:	eb 46                	jmp    801b45 <env_sleep+0x94>
 
 static inline __attribute__((always_inline)) struct uint64 get_virtual_time_user()
 {
 	struct uint64 result;
 
 	__asm __volatile("rdtsc\n"
-  801afe:	0f 31                	rdtsc  
-  801b00:	89 45 d0             	mov    %eax,-0x30(%ebp)
-  801b03:	89 55 d4             	mov    %edx,-0x2c(%ebp)
+  801aff:	0f 31                	rdtsc  
+  801b01:	89 45 d0             	mov    %eax,-0x30(%ebp)
+  801b04:	89 55 d4             	mov    %edx,-0x2c(%ebp)
 	: "=a" (result.low), "=d" (result.hi)
 	);
 
 	return result;
-  801b06:	8b 45 d0             	mov    -0x30(%ebp),%eax
-  801b09:	8b 55 d4             	mov    -0x2c(%ebp),%edx
-  801b0c:	89 45 e0             	mov    %eax,-0x20(%ebp)
-  801b0f:	89 55 e4             	mov    %edx,-0x1c(%ebp)
+  801b07:	8b 45 d0             	mov    -0x30(%ebp),%eax
+  801b0a:	8b 55 d4             	mov    -0x2c(%ebp),%edx
+  801b0d:	89 45 e0             	mov    %eax,-0x20(%ebp)
+  801b10:	89 55 e4             	mov    %edx,-0x1c(%ebp)
 
 		// update the cycles_count
 		#define M32 0xffffffff
 		// subtract basetime from current time
 		struct uint64 res;
 		res.low = (currentTime.low - baseTime.low) & M32;
-  801b12:	8b 55 e0             	mov    -0x20(%ebp),%edx
-  801b15:	8b 45 f0             	mov    -0x10(%ebp),%eax
-  801b18:	29 c2                	sub    %eax,%edx
-  801b1a:	89 d0                	mov    %edx,%eax
-  801b1c:	89 45 d8             	mov    %eax,-0x28(%ebp)
+  801b13:	8b 55 e0             	mov    -0x20(%ebp),%edx
+  801b16:	8b 45 f0             	mov    -0x10(%ebp),%eax
+  801b19:	29 c2                	sub    %eax,%edx
+  801b1b:	89 d0                	mov    %edx,%eax
+  801b1d:	89 45 d8             	mov    %eax,-0x28(%ebp)
 		res.hi = (currentTime.hi - baseTime.hi - (res.low > currentTime.low)) & M32;
-  801b1f:	8b 55 e4             	mov    -0x1c(%ebp),%edx
-  801b22:	8b 45 f4             	mov    -0xc(%ebp),%eax
-  801b25:	89 d1                	mov    %edx,%ecx
-  801b27:	29 c1                	sub    %eax,%ecx
-  801b29:	8b 55 d8             	mov    -0x28(%ebp),%edx
-  801b2c:	8b 45 e0             	mov    -0x20(%ebp),%eax
-  801b2f:	39 c2                	cmp    %eax,%edx
-  801b31:	0f 97 c0             	seta   %al
-  801b34:	0f b6 c0             	movzbl %al,%eax
-  801b37:	29 c1                	sub    %eax,%ecx
-  801b39:	89 c8                	mov    %ecx,%eax
-  801b3b:	89 45 dc             	mov    %eax,-0x24(%ebp)
+  801b20:	8b 55 e4             	mov    -0x1c(%ebp),%edx
+  801b23:	8b 45 f4             	mov    -0xc(%ebp),%eax
+  801b26:	89 d1                	mov    %edx,%ecx
+  801b28:	29 c1                	sub    %eax,%ecx
+  801b2a:	8b 55 d8             	mov    -0x28(%ebp),%edx
+  801b2d:	8b 45 e0             	mov    -0x20(%ebp),%eax
+  801b30:	39 c2                	cmp    %eax,%edx
+  801b32:	0f 97 c0             	seta   %al
+  801b35:	0f b6 c0             	movzbl %al,%eax
+  801b38:	29 c1                	sub    %eax,%ecx
+  801b3a:	89 c8                	mov    %ecx,%eax
+  801b3c:	89 45 dc             	mov    %eax,-0x24(%ebp)
 
 		//update cycles_count with result
 		cycles_counter = res.low;
-  801b3e:	8b 45 d8             	mov    -0x28(%ebp),%eax
-  801b41:	89 45 fc             	mov    %eax,-0x4(%ebp)
+  801b3f:	8b 45 d8             	mov    -0x28(%ebp),%eax
+  801b42:	89 45 fc             	mov    %eax,-0x4(%ebp)
 	uint32 cycles_counter =0;
 
 	/*2024*/ //USE A USER-SIDE VERSION OF THIS FUNCTION TO AVOID SLOW-DOWN THE PERFORMANCE DUE SYS_CALL (el7 :))
 	//struct uint64 baseTime = sys_get_virtual_time() ;
 	struct uint64 baseTime = get_virtual_time_user() ;
 	while(cycles_counter<time_in_cycles)
-  801b44:	8b 45 fc             	mov    -0x4(%ebp),%eax
-  801b47:	3b 45 f8             	cmp    -0x8(%ebp),%eax
-  801b4a:	72 b2                	jb     801afe <env_sleep+0x4e>
+  801b45:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801b48:	3b 45 f8             	cmp    -0x8(%ebp),%eax
+  801b4b:	72 b2                	jb     801aff <env_sleep+0x4e>
 //				,cycles_counter
 //				);
 	}
 	//cprintf("%s [%d] wake up now!\n", myEnv->prog_name, myEnv->env_id);
 
 }
-  801b4c:	90                   	nop
-  801b4d:	c9                   	leave  
-  801b4e:	c3                   	ret    
+  801b4d:	90                   	nop
+  801b4e:	c9                   	leave  
+  801b4f:	c3                   	ret    
 
-00801b4f <busy_wait>:
+00801b50 <busy_wait>:
 
 //2017
 uint32 busy_wait(uint32 loopMax)
 {
-  801b4f:	55                   	push   %ebp
-  801b50:	89 e5                	mov    %esp,%ebp
-  801b52:	83 ec 10             	sub    $0x10,%esp
+  801b50:	55                   	push   %ebp
+  801b51:	89 e5                	mov    %esp,%ebp
+  801b53:	83 ec 10             	sub    $0x10,%esp
 	uint32 i = 0 ;
-  801b55:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  801b56:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
 	while (i < loopMax) i++;
-  801b5c:	eb 03                	jmp    801b61 <busy_wait+0x12>
-  801b5e:	ff 45 fc             	incl   -0x4(%ebp)
-  801b61:	8b 45 fc             	mov    -0x4(%ebp),%eax
-  801b64:	3b 45 08             	cmp    0x8(%ebp),%eax
-  801b67:	72 f5                	jb     801b5e <busy_wait+0xf>
+  801b5d:	eb 03                	jmp    801b62 <busy_wait+0x12>
+  801b5f:	ff 45 fc             	incl   -0x4(%ebp)
+  801b62:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801b65:	3b 45 08             	cmp    0x8(%ebp),%eax
+  801b68:	72 f5                	jb     801b5f <busy_wait+0xf>
 	return i;
-  801b69:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  801b6a:	8b 45 fc             	mov    -0x4(%ebp),%eax
 }
-  801b6c:	c9                   	leave  
-  801b6d:	c3                   	ret    
-  801b6e:	66 90                	xchg   %ax,%ax
+  801b6d:	c9                   	leave  
+  801b6e:	c3                   	ret    
+  801b6f:	90                   	nop
 
 00801b70 <__udivdi3>:
   801b70:	55                   	push   %ebp

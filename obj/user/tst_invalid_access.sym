@@ -1,7 +1,7 @@
 00200010 R __STAB_BEGIN__
-00204a44 R __STAB_END__
-00204a45 R __STABSTR_BEGIN__
-00208041 R __STABSTR_END__
+002044ec R __STAB_END__
+002044ed R __STABSTR_BEGIN__
+002079bf R __STABSTR_END__
 00800020 T _start
 00800031 t args_exist
 00800038 T _main
@@ -88,13 +88,11 @@
 008018fd T sys_free_user_mem
 00801919 T sys_allocate_user_mem
 00801935 T sys_env_set_priority
-00801952 T env_sleep
-008019f1 T busy_wait
-00801a10 T _panic
-00801a87 T CheckWSArrayWithoutLastIndex
-00801c00 T __udivdi3
-00801d10 T __umoddi3
-00802280 r error_string
+00801953 T env_sleep
+008019f2 T busy_wait
+00801a14 T __udivdi3
+00801b24 T __umoddi3
+00802080 r error_string
 00803000 D printStats
 00803004 D binaryname
 00803020 B myEnv
@@ -110,7 +108,6 @@
 0081b110 B uheapPageAllocStart
 0081b114 B _ModifiedBufferLength
 0081b118 B curTextClr
-0081b11c B argv0
 eec00000 A envs
 ef400000 A vpt
 ef7bd000 A vpd

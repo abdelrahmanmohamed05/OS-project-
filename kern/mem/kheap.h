@@ -17,7 +17,6 @@
 #define KHP_PLACE_WORSTFIT 	0x4
 #define KHP_PLACE_CUSTOMFIT 0x5
 
-//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #0 Page Alloc Limits [GIVEN]
 uint32 kheapPageAllocStart ;
 uint32 kheapPageAllocBreak ;
 uint32 kheapPlacementStrategy;

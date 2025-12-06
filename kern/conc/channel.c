@@ -28,7 +28,6 @@ void init_channel(struct Channel* chan, char* name)
 // Ref: xv6-x86 OS code
 void sleep(struct Channel* chan, struct kspinlock* lk)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #1 CHANNEL - sleep
 
 	struct Env* cur_env = get_cpu_proc();
 	if (cur_env == NULL) panic("sleep: no current environment");
@@ -57,7 +56,6 @@ void sleep(struct Channel* chan, struct kspinlock* lk)
 // chan MUST be of type "struct Env_Queue" to hold the blocked processes
 void wakeup_one(struct Channel* chan)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #2 CHANNEL - wakeup_one
 
 		//Acquire the process queues lock
 	acquire_kspinlock(&ProcessQueues.qlock);
@@ -85,7 +83,6 @@ void wakeup_one(struct Channel* chan)
 
 void wakeup_all(struct Channel* chan)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #3 CHANNEL - wakeup_all
 		//Acquire the process queues lock
 	acquire_kspinlock(&ProcessQueues.qlock);
 

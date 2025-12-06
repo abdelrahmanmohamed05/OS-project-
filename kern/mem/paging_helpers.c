@@ -134,7 +134,6 @@ inline uint32 physical_to_virtual(uint32* directory, uint32 physical_address)
 //return the number of page references on the frame at the given physical address
 inline uint32 num_of_references(uint32 physical_address)
 {
-	//TODO: LAB4 Example#1: fill this function.
 	//Comment the following line
 //	panic("Function is not implemented yet!");
 	struct FrameInfo* ptr_fi = to_frame_info(physical_address);
@@ -155,7 +154,7 @@ inline uint32 num_of_references(uint32 physical_address)
 //HINT: remember to free the allocated frame if there is no space for the necessary page table
 inline int alloc_page(uint32* directory, uint32 va, uint32 perms, bool set_to_zero)
 {
-	//TODO: LAB4 Example#2: fill this function.
+
 	//Comment the following line
 	//panic("Function is not implemented yet!");
 	uint32* ptr_table ;
@@ -218,7 +217,6 @@ inline int alloc_shared_page(uint32* page_dir1, uint32 va1,uint32* page_dir2, ui
 //REMEMBER: to invalidate the TLB cache
 inline void del_page_table(uint32* page_dir, uint32 va)
 {
-	//TODO: LAB6 Example: fill this function.
 	//Comment the following line
 	//panic("Function is not implemented yet!");
 

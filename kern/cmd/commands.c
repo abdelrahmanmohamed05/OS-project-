@@ -240,7 +240,6 @@ int command_share_page(int number_of_arguments, char **arguments)
 //[1] Number of references on the given physical address
 int command_nr(int number_of_arguments, char **arguments)
 {
-	//TODO: LAB4 Example#1: corresponding command name is "nr"
 
 	uint32 pa  = strtol(arguments[1], NULL, 16);
 	int num_of_ref = num_of_references(pa);
@@ -251,7 +250,6 @@ int command_nr(int number_of_arguments, char **arguments)
 //[2] Allocate Page
 int command_ap(int number_of_arguments, char **arguments)
 {
-	//TODO: LAB4 Example#2: corresponding command name is "ap"
 
 	uint32 va = strtol(arguments[1], NULL, 16);
 	bool set_to_zero = 0;
@@ -281,7 +279,6 @@ int command_ap(int number_of_arguments, char **arguments)
 //[3] Free Page: Un-map a single page at the given virtual address in the user space
 int command_fp(int number_of_arguments, char **arguments)
 {
-	//TODO: LAB4 Example#3: corresponding command name is "fp"
 
 	uint32 va = strtol(arguments[1], NULL, 16);
 	unmap_frame(ptr_page_directory, va);
@@ -384,7 +381,6 @@ int command_p2v(int number_of_arguments, char **arguments)
 //=============
 int command_ft(int number_of_arguments, char **arguments)
 {
-	//TODO: LAB6 Example: corresponding command name is "ft"
 
 	uint32 va = strtol(arguments[1], NULL, 16);
 	del_page_table(ptr_page_directory, va);

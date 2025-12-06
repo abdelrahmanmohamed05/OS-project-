@@ -11,7 +11,6 @@
 //2020
 #define UHP_USE_BUDDY 0
 
-//TODO: [PROJECT'25.GM#2] USER HEAP - #0 Page Alloc Limits [GIVEN]
 uint32 uheapPageAllocStart ;
 uint32 uheapPageAllocBreak ;
 uint32 uheapPlaceStrategy ;

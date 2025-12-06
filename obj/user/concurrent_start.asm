@@ -59,7 +59,7 @@ _main(void)
   80005c:	6a 01                	push   $0x1
   80005e:	68 20 1d 80 00       	push   $0x801d20
   800063:	50                   	push   %eax
-  800064:	e8 d3 19 00 00       	call   801a3c <create_semaphore>
+  800064:	e8 d4 19 00 00       	call   801a3d <create_semaphore>
   800069:	83 c4 0c             	add    $0xc,%esp
 	struct semaphore depend1 = create_semaphore("depend1", 0);
   80006c:	8d 45 e4             	lea    -0x1c(%ebp),%eax
@@ -67,7 +67,7 @@ _main(void)
   800072:	6a 00                	push   $0x0
   800074:	68 25 1d 80 00       	push   $0x801d25
   800079:	50                   	push   %eax
-  80007a:	e8 bd 19 00 00       	call   801a3c <create_semaphore>
+  80007a:	e8 be 19 00 00       	call   801a3d <create_semaphore>
   80007f:	83 c4 0c             	add    $0xc,%esp
 
 	uint32 id1, id2;
@@ -153,13 +153,13 @@ libmain(int argc, char **argv)
 	myEnv = &(envs[envIndex]);
   800140:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   800143:	89 d0                	mov    %edx,%eax
-  800145:	c1 e0 02             	shl    $0x2,%eax
+  800145:	c1 e0 03             	shl    $0x3,%eax
   800148:	01 d0                	add    %edx,%eax
-  80014a:	c1 e0 03             	shl    $0x3,%eax
+  80014a:	c1 e0 02             	shl    $0x2,%eax
   80014d:	01 d0                	add    %edx,%eax
-  80014f:	8d 14 c5 00 00 00 00 	lea    0x0(,%eax,8),%edx
+  80014f:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
   800156:	01 d0                	add    %edx,%eax
-  800158:	c1 e0 02             	shl    $0x2,%eax
+  800158:	c1 e0 03             	shl    $0x3,%eax
   80015b:	05 00 00 c0 ee       	add    $0xeec00000,%eax
   800160:	a3 20 30 80 00       	mov    %eax,0x803020
 
@@ -249,9 +249,9 @@ libmain(int argc, char **argv)
 			{
 				cprintf("Num of PAGE faults = %d, modif = %d\n", myEnv->pageFaultsCounter, myEnv->nModifiedPages);
   800223:	a1 20 30 80 00       	mov    0x803020,%eax
-  800228:	8b 90 a8 05 00 00    	mov    0x5a8(%eax),%edx
+  800228:	8b 90 ac 05 00 00    	mov    0x5ac(%eax),%edx
   80022e:	a1 20 30 80 00       	mov    0x803020,%eax
-  800233:	8b 80 98 05 00 00    	mov    0x598(%eax),%eax
+  800233:	8b 80 9c 05 00 00    	mov    0x59c(%eax),%eax
   800239:	83 ec 04             	sub    $0x4,%esp
   80023c:	52                   	push   %edx
   80023d:	50                   	push   %eax
@@ -260,11 +260,11 @@ libmain(int argc, char **argv)
   800248:	83 c4 10             	add    $0x10,%esp
 				cprintf("# PAGE IN (from disk) = %d, # PAGE OUT (on disk) = %d, # NEW PAGE ADDED (on disk) = %d\n", myEnv->nPageIn, myEnv->nPageOut,myEnv->nNewPageAdded);
   80024b:	a1 20 30 80 00       	mov    0x803020,%eax
-  800250:	8b 88 bc 05 00 00    	mov    0x5bc(%eax),%ecx
+  800250:	8b 88 c0 05 00 00    	mov    0x5c0(%eax),%ecx
   800256:	a1 20 30 80 00       	mov    0x803020,%eax
-  80025b:	8b 90 b8 05 00 00    	mov    0x5b8(%eax),%edx
+  80025b:	8b 90 bc 05 00 00    	mov    0x5bc(%eax),%edx
   800261:	a1 20 30 80 00       	mov    0x803020,%eax
-  800266:	8b 80 b4 05 00 00    	mov    0x5b4(%eax),%eax
+  800266:	8b 80 b8 05 00 00    	mov    0x5b8(%eax),%eax
   80026c:	51                   	push   %ecx
   80026d:	52                   	push   %edx
   80026e:	50                   	push   %eax
@@ -275,7 +275,7 @@ libmain(int argc, char **argv)
 			//cprintf("Num of freeing scarce memory = %d, freeing full working set = %d\n", myEnv->freeingScarceMemCounter, myEnv->freeingFullWSCounter);
 			cprintf("Num of clocks = %d\n", myEnv->nClocks);
   80027c:	a1 20 30 80 00       	mov    0x803020,%eax
-  800281:	8b 80 c0 05 00 00    	mov    0x5c0(%eax),%eax
+  800281:	8b 80 c4 05 00 00    	mov    0x5c4(%eax),%eax
   800287:	83 ec 08             	sub    $0x8,%esp
   80028a:	50                   	push   %eax
   80028b:	68 48 1e 80 00       	push   $0x801e48
@@ -4119,92 +4119,96 @@ void sys_env_set_priority(int32 envID, int priority)
 {
   801a1f:	55                   	push   %ebp
   801a20:	89 e5                	mov    %esp,%ebp
-  801a22:	83 ec 08             	sub    $0x8,%esp
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 System Calls - Add suitable code here
-	//Your code is here
-	//Comment the following line
-	panic("sys_env_set_priority() is not implemented yet...!!");
-  801a25:	83 ec 04             	sub    $0x4,%esp
-  801a28:	68 a8 23 80 00       	push   $0x8023a8
-  801a2d:	68 25 01 00 00       	push   $0x125
-  801a32:	68 db 23 80 00       	push   $0x8023db
-  801a37:	e8 a3 e8 ff ff       	call   8002df <_panic>
+	syscall(SYS_env_set_priority, envID, priority, 0, 0, 0);
+  801a22:	8b 55 0c             	mov    0xc(%ebp),%edx
+  801a25:	8b 45 08             	mov    0x8(%ebp),%eax
+  801a28:	6a 00                	push   $0x0
+  801a2a:	6a 00                	push   $0x0
+  801a2c:	6a 00                	push   $0x0
+  801a2e:	52                   	push   %edx
+  801a2f:	50                   	push   %eax
+  801a30:	6a 2e                	push   $0x2e
+  801a32:	e8 5b fa ff ff       	call   801492 <syscall>
+  801a37:	83 c4 18             	add    $0x18,%esp
+}
+  801a3a:	90                   	nop
+  801a3b:	c9                   	leave  
+  801a3c:	c3                   	ret    
 
-00801a3c <create_semaphore>:
+00801a3d <create_semaphore>:
 // User-level Semaphore
 
 #include "inc/lib.h"
 
 struct semaphore create_semaphore(char *semaphoreName, uint32 value)
 {
-  801a3c:	55                   	push   %ebp
-  801a3d:	89 e5                	mov    %esp,%ebp
-  801a3f:	83 ec 08             	sub    $0x8,%esp
+  801a3d:	55                   	push   %ebp
+  801a3e:	89 e5                	mov    %esp,%ebp
+  801a40:	83 ec 08             	sub    $0x8,%esp
 	panic("create_semaphore() is not implemented yet...!!");
-  801a42:	83 ec 04             	sub    $0x4,%esp
-  801a45:	68 ec 23 80 00       	push   $0x8023ec
-  801a4a:	6a 07                	push   $0x7
-  801a4c:	68 1b 24 80 00       	push   $0x80241b
-  801a51:	e8 89 e8 ff ff       	call   8002df <_panic>
+  801a43:	83 ec 04             	sub    $0x4,%esp
+  801a46:	68 a8 23 80 00       	push   $0x8023a8
+  801a4b:	6a 07                	push   $0x7
+  801a4d:	68 d7 23 80 00       	push   $0x8023d7
+  801a52:	e8 88 e8 ff ff       	call   8002df <_panic>
 
-00801a56 <get_semaphore>:
+00801a57 <get_semaphore>:
 }
 struct semaphore get_semaphore(int32 ownerEnvID, char* semaphoreName)
 {
-  801a56:	55                   	push   %ebp
-  801a57:	89 e5                	mov    %esp,%ebp
-  801a59:	83 ec 08             	sub    $0x8,%esp
+  801a57:	55                   	push   %ebp
+  801a58:	89 e5                	mov    %esp,%ebp
+  801a5a:	83 ec 08             	sub    $0x8,%esp
 	panic("get_semaphore() is not implemented yet...!!");
-  801a5c:	83 ec 04             	sub    $0x4,%esp
-  801a5f:	68 2c 24 80 00       	push   $0x80242c
-  801a64:	6a 0b                	push   $0xb
-  801a66:	68 1b 24 80 00       	push   $0x80241b
-  801a6b:	e8 6f e8 ff ff       	call   8002df <_panic>
+  801a5d:	83 ec 04             	sub    $0x4,%esp
+  801a60:	68 e8 23 80 00       	push   $0x8023e8
+  801a65:	6a 0b                	push   $0xb
+  801a67:	68 d7 23 80 00       	push   $0x8023d7
+  801a6c:	e8 6e e8 ff ff       	call   8002df <_panic>
 
-00801a70 <wait_semaphore>:
+00801a71 <wait_semaphore>:
 }
 
 void wait_semaphore(struct semaphore sem)
 {
-  801a70:	55                   	push   %ebp
-  801a71:	89 e5                	mov    %esp,%ebp
-  801a73:	83 ec 08             	sub    $0x8,%esp
+  801a71:	55                   	push   %ebp
+  801a72:	89 e5                	mov    %esp,%ebp
+  801a74:	83 ec 08             	sub    $0x8,%esp
 	panic("wait_semaphore() is not implemented yet...!!");
-  801a76:	83 ec 04             	sub    $0x4,%esp
-  801a79:	68 58 24 80 00       	push   $0x802458
-  801a7e:	6a 10                	push   $0x10
-  801a80:	68 1b 24 80 00       	push   $0x80241b
-  801a85:	e8 55 e8 ff ff       	call   8002df <_panic>
+  801a77:	83 ec 04             	sub    $0x4,%esp
+  801a7a:	68 14 24 80 00       	push   $0x802414
+  801a7f:	6a 10                	push   $0x10
+  801a81:	68 d7 23 80 00       	push   $0x8023d7
+  801a86:	e8 54 e8 ff ff       	call   8002df <_panic>
 
-00801a8a <signal_semaphore>:
+00801a8b <signal_semaphore>:
 }
 
 void signal_semaphore(struct semaphore sem)
 {
-  801a8a:	55                   	push   %ebp
-  801a8b:	89 e5                	mov    %esp,%ebp
-  801a8d:	83 ec 08             	sub    $0x8,%esp
+  801a8b:	55                   	push   %ebp
+  801a8c:	89 e5                	mov    %esp,%ebp
+  801a8e:	83 ec 08             	sub    $0x8,%esp
 	panic("signal_semaphore() is not implemented yet...!!");
-  801a90:	83 ec 04             	sub    $0x4,%esp
-  801a93:	68 88 24 80 00       	push   $0x802488
-  801a98:	6a 15                	push   $0x15
-  801a9a:	68 1b 24 80 00       	push   $0x80241b
-  801a9f:	e8 3b e8 ff ff       	call   8002df <_panic>
+  801a91:	83 ec 04             	sub    $0x4,%esp
+  801a94:	68 44 24 80 00       	push   $0x802444
+  801a99:	6a 15                	push   $0x15
+  801a9b:	68 d7 23 80 00       	push   $0x8023d7
+  801aa0:	e8 3a e8 ff ff       	call   8002df <_panic>
 
-00801aa4 <semaphore_count>:
+00801aa5 <semaphore_count>:
 }
 
 int semaphore_count(struct semaphore sem)
 {
-  801aa4:	55                   	push   %ebp
-  801aa5:	89 e5                	mov    %esp,%ebp
+  801aa5:	55                   	push   %ebp
+  801aa6:	89 e5                	mov    %esp,%ebp
 	return sem.semdata->count;
-  801aa7:	8b 45 08             	mov    0x8(%ebp),%eax
-  801aaa:	8b 40 10             	mov    0x10(%eax),%eax
+  801aa8:	8b 45 08             	mov    0x8(%ebp),%eax
+  801aab:	8b 40 10             	mov    0x10(%eax),%eax
 }
-  801aad:	5d                   	pop    %ebp
-  801aae:	c3                   	ret    
-  801aaf:	90                   	nop
+  801aae:	5d                   	pop    %ebp
+  801aaf:	c3                   	ret    
 
 00801ab0 <__udivdi3>:
   801ab0:	55                   	push   %ebp

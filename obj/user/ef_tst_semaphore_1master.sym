@@ -1,7 +1,7 @@
 00200010 R __STAB_BEGIN__
-002049fc R __STAB_END__
-002049fd R __STABSTR_BEGIN__
-0020805d R __STABSTR_END__
+00204a08 R __STAB_END__
+00204a09 R __STABSTR_BEGIN__
+002080a0 R __STABSTR_END__
 00800020 T _start
 00800031 t args_exist
 00800038 T _main
@@ -90,11 +90,11 @@
 00801ad9 T sys_free_user_mem
 00801af5 T sys_allocate_user_mem
 00801b11 T sys_env_set_priority
-00801b2e T create_semaphore
-00801b48 T get_semaphore
-00801b62 T wait_semaphore
-00801b7c T signal_semaphore
-00801b96 T semaphore_count
+00801b2f T create_semaphore
+00801b49 T get_semaphore
+00801b63 T wait_semaphore
+00801b7d T signal_semaphore
+00801b97 T semaphore_count
 00801ba4 T __udivdi3
 00801cb4 T __umoddi3
 00802200 r error_string

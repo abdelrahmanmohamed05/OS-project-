@@ -1,7 +1,7 @@
 00200010 R __STAB_BEGIN__
-00205398 R __STAB_END__
-00205399 R __STABSTR_BEGIN__
-00208b1f R __STABSTR_END__
+002053a4 R __STAB_END__
+002053a5 R __STABSTR_BEGIN__
+00208b62 R __STABSTR_END__
 00800020 T _start
 00800031 t args_exist
 00800038 T _main
@@ -92,11 +92,11 @@
 00801c8f T sys_free_user_mem
 00801cab T sys_allocate_user_mem
 00801cc7 T sys_env_set_priority
-00801ce4 T env_sleep
-00801d83 T busy_wait
-00801da2 T cputchar
-00801dc1 T getchar
-00801dd4 T iscons
+00801ce5 T env_sleep
+00801d84 T busy_wait
+00801da3 T cputchar
+00801dc2 T getchar
+00801dd5 T iscons
 00801de0 T __udivdi3
 00801ef0 T __umoddi3
 00802520 r error_string

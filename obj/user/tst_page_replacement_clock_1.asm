@@ -72,13 +72,13 @@ libmain(int argc, char **argv)
 	myEnv = &(envs[envIndex]);
   800063:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   800066:	89 d0                	mov    %edx,%eax
-  800068:	c1 e0 02             	shl    $0x2,%eax
+  800068:	c1 e0 03             	shl    $0x3,%eax
   80006b:	01 d0                	add    %edx,%eax
-  80006d:	c1 e0 03             	shl    $0x3,%eax
+  80006d:	c1 e0 02             	shl    $0x2,%eax
   800070:	01 d0                	add    %edx,%eax
-  800072:	8d 14 c5 00 00 00 00 	lea    0x0(,%eax,8),%edx
+  800072:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
   800079:	01 d0                	add    %edx,%eax
-  80007b:	c1 e0 02             	shl    $0x2,%eax
+  80007b:	c1 e0 03             	shl    $0x3,%eax
   80007e:	05 00 00 c0 ee       	add    $0xeec00000,%eax
   800083:	a3 20 30 80 00       	mov    %eax,0x803020
 
@@ -168,9 +168,9 @@ libmain(int argc, char **argv)
 			{
 				cprintf("Num of PAGE faults = %d, modif = %d\n", myEnv->pageFaultsCounter, myEnv->nModifiedPages);
   800146:	a1 20 30 80 00       	mov    0x803020,%eax
-  80014b:	8b 90 a8 05 00 00    	mov    0x5a8(%eax),%edx
+  80014b:	8b 90 ac 05 00 00    	mov    0x5ac(%eax),%edx
   800151:	a1 20 30 80 00       	mov    0x803020,%eax
-  800156:	8b 80 98 05 00 00    	mov    0x598(%eax),%eax
+  800156:	8b 80 9c 05 00 00    	mov    0x59c(%eax),%eax
   80015c:	83 ec 04             	sub    $0x4,%esp
   80015f:	52                   	push   %edx
   800160:	50                   	push   %eax
@@ -179,11 +179,11 @@ libmain(int argc, char **argv)
   80016b:	83 c4 10             	add    $0x10,%esp
 				cprintf("# PAGE IN (from disk) = %d, # PAGE OUT (on disk) = %d, # NEW PAGE ADDED (on disk) = %d\n", myEnv->nPageIn, myEnv->nPageOut,myEnv->nNewPageAdded);
   80016e:	a1 20 30 80 00       	mov    0x803020,%eax
-  800173:	8b 88 bc 05 00 00    	mov    0x5bc(%eax),%ecx
+  800173:	8b 88 c0 05 00 00    	mov    0x5c0(%eax),%ecx
   800179:	a1 20 30 80 00       	mov    0x803020,%eax
-  80017e:	8b 90 b8 05 00 00    	mov    0x5b8(%eax),%edx
+  80017e:	8b 90 bc 05 00 00    	mov    0x5bc(%eax),%edx
   800184:	a1 20 30 80 00       	mov    0x803020,%eax
-  800189:	8b 80 b4 05 00 00    	mov    0x5b4(%eax),%eax
+  800189:	8b 80 b8 05 00 00    	mov    0x5b8(%eax),%eax
   80018f:	51                   	push   %ecx
   800190:	52                   	push   %edx
   800191:	50                   	push   %eax
@@ -194,7 +194,7 @@ libmain(int argc, char **argv)
 			//cprintf("Num of freeing scarce memory = %d, freeing full working set = %d\n", myEnv->freeingScarceMemCounter, myEnv->freeingFullWSCounter);
 			cprintf("Num of clocks = %d\n", myEnv->nClocks);
   80019f:	a1 20 30 80 00       	mov    0x803020,%eax
-  8001a4:	8b 80 c0 05 00 00    	mov    0x5c0(%eax),%eax
+  8001a4:	8b 80 c4 05 00 00    	mov    0x5c4(%eax),%eax
   8001aa:	83 ec 08             	sub    $0x8,%esp
   8001ad:	50                   	push   %eax
   8001ae:	68 fc 1c 80 00       	push   $0x801cfc
@@ -4038,17 +4038,21 @@ void sys_env_set_priority(int32 envID, int priority)
 {
   801942:	55                   	push   %ebp
   801943:	89 e5                	mov    %esp,%ebp
-  801945:	83 ec 08             	sub    $0x8,%esp
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 System Calls - Add suitable code here
-	//Your code is here
-	//Comment the following line
-	panic("sys_env_set_priority() is not implemented yet...!!");
-  801948:	83 ec 04             	sub    $0x4,%esp
-  80194b:	68 48 22 80 00       	push   $0x802248
-  801950:	68 25 01 00 00       	push   $0x125
-  801955:	68 7b 22 80 00       	push   $0x80227b
-  80195a:	e8 a3 e8 ff ff       	call   800202 <_panic>
-  80195f:	90                   	nop
+	syscall(SYS_env_set_priority, envID, priority, 0, 0, 0);
+  801945:	8b 55 0c             	mov    0xc(%ebp),%edx
+  801948:	8b 45 08             	mov    0x8(%ebp),%eax
+  80194b:	6a 00                	push   $0x0
+  80194d:	6a 00                	push   $0x0
+  80194f:	6a 00                	push   $0x0
+  801951:	52                   	push   %edx
+  801952:	50                   	push   %eax
+  801953:	6a 2e                	push   $0x2e
+  801955:	e8 5b fa ff ff       	call   8013b5 <syscall>
+  80195a:	83 c4 18             	add    $0x18,%esp
+}
+  80195d:	90                   	nop
+  80195e:	c9                   	leave  
+  80195f:	c3                   	ret    
 
 00801960 <__udivdi3>:
   801960:	55                   	push   %ebp

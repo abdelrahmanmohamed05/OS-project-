@@ -53,7 +53,7 @@ _main(void)
   80004c:	6a 01                	push   $0x1
   80004e:	68 20 1e 80 00       	push   $0x801e20
   800053:	50                   	push   %eax
-  800054:	e8 d5 1a 00 00       	call   801b2e <create_semaphore>
+  800054:	e8 d6 1a 00 00       	call   801b2f <create_semaphore>
   800059:	83 c4 0c             	add    $0xc,%esp
 	struct semaphore depend1 = create_semaphore("depend1", 0);
   80005c:	8d 45 d4             	lea    -0x2c(%ebp),%eax
@@ -61,7 +61,7 @@ _main(void)
   800062:	6a 00                	push   $0x0
   800064:	68 24 1e 80 00       	push   $0x801e24
   800069:	50                   	push   %eax
-  80006a:	e8 bf 1a 00 00       	call   801b2e <create_semaphore>
+  80006a:	e8 c0 1a 00 00       	call   801b2f <create_semaphore>
   80006f:	83 c4 0c             	add    $0xc,%esp
 
 	int id1, id2, id3;
@@ -137,29 +137,29 @@ _main(void)
 	wait_semaphore(depend1) ;
   800146:	83 ec 0c             	sub    $0xc,%esp
   800149:	ff 75 d4             	pushl  -0x2c(%ebp)
-  80014c:	e8 11 1a 00 00       	call   801b62 <wait_semaphore>
+  80014c:	e8 12 1a 00 00       	call   801b63 <wait_semaphore>
   800151:	83 c4 10             	add    $0x10,%esp
 	wait_semaphore(depend1) ;
   800154:	83 ec 0c             	sub    $0xc,%esp
   800157:	ff 75 d4             	pushl  -0x2c(%ebp)
-  80015a:	e8 03 1a 00 00       	call   801b62 <wait_semaphore>
+  80015a:	e8 04 1a 00 00       	call   801b63 <wait_semaphore>
   80015f:	83 c4 10             	add    $0x10,%esp
 	wait_semaphore(depend1) ;
   800162:	83 ec 0c             	sub    $0xc,%esp
   800165:	ff 75 d4             	pushl  -0x2c(%ebp)
-  800168:	e8 f5 19 00 00       	call   801b62 <wait_semaphore>
+  800168:	e8 f6 19 00 00       	call   801b63 <wait_semaphore>
   80016d:	83 c4 10             	add    $0x10,%esp
 
 	int sem1val = semaphore_count(cs1);
   800170:	83 ec 0c             	sub    $0xc,%esp
   800173:	ff 75 d8             	pushl  -0x28(%ebp)
-  800176:	e8 1b 1a 00 00       	call   801b96 <semaphore_count>
+  800176:	e8 1c 1a 00 00       	call   801b97 <semaphore_count>
   80017b:	83 c4 10             	add    $0x10,%esp
   80017e:	89 45 e4             	mov    %eax,-0x1c(%ebp)
 	int sem2val = semaphore_count(depend1);
   800181:	83 ec 0c             	sub    $0xc,%esp
   800184:	ff 75 d4             	pushl  -0x2c(%ebp)
-  800187:	e8 0a 1a 00 00       	call   801b96 <semaphore_count>
+  800187:	e8 0b 1a 00 00       	call   801b97 <semaphore_count>
   80018c:	83 c4 10             	add    $0x10,%esp
   80018f:	89 45 e0             	mov    %eax,-0x20(%ebp)
 	if (sem2val == 0 && sem1val == 1)
@@ -208,12 +208,12 @@ _main(void)
   8001fe:	68 df 1e 80 00       	push   $0x801edf
   800203:	ff 75 dc             	pushl  -0x24(%ebp)
   800206:	50                   	push   %eax
-  800207:	e8 3c 19 00 00       	call   801b48 <get_semaphore>
+  800207:	e8 3d 19 00 00       	call   801b49 <get_semaphore>
   80020c:	83 c4 0c             	add    $0xc,%esp
 		signal_semaphore(depend0);
   80020f:	83 ec 0c             	sub    $0xc,%esp
   800212:	ff 75 d0             	pushl  -0x30(%ebp)
-  800215:	e8 62 19 00 00       	call   801b7c <signal_semaphore>
+  800215:	e8 63 19 00 00       	call   801b7d <signal_semaphore>
   80021a:	83 c4 10             	add    $0x10,%esp
 //		int *finishedCount = NULL;
 //		finishedCount = sget(parentenvID, "finishedCount") ;
@@ -248,13 +248,13 @@ libmain(int argc, char **argv)
 	myEnv = &(envs[envIndex]);
   800232:	8b 55 e4             	mov    -0x1c(%ebp),%edx
   800235:	89 d0                	mov    %edx,%eax
-  800237:	c1 e0 02             	shl    $0x2,%eax
+  800237:	c1 e0 03             	shl    $0x3,%eax
   80023a:	01 d0                	add    %edx,%eax
-  80023c:	c1 e0 03             	shl    $0x3,%eax
+  80023c:	c1 e0 02             	shl    $0x2,%eax
   80023f:	01 d0                	add    %edx,%eax
-  800241:	8d 14 c5 00 00 00 00 	lea    0x0(,%eax,8),%edx
+  800241:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
   800248:	01 d0                	add    %edx,%eax
-  80024a:	c1 e0 02             	shl    $0x2,%eax
+  80024a:	c1 e0 03             	shl    $0x3,%eax
   80024d:	05 00 00 c0 ee       	add    $0xeec00000,%eax
   800252:	a3 20 30 80 00       	mov    %eax,0x803020
 
@@ -344,9 +344,9 @@ libmain(int argc, char **argv)
 			{
 				cprintf("Num of PAGE faults = %d, modif = %d\n", myEnv->pageFaultsCounter, myEnv->nModifiedPages);
   800315:	a1 20 30 80 00       	mov    0x803020,%eax
-  80031a:	8b 90 a8 05 00 00    	mov    0x5a8(%eax),%edx
+  80031a:	8b 90 ac 05 00 00    	mov    0x5ac(%eax),%edx
   800320:	a1 20 30 80 00       	mov    0x803020,%eax
-  800325:	8b 80 98 05 00 00    	mov    0x598(%eax),%eax
+  800325:	8b 80 9c 05 00 00    	mov    0x59c(%eax),%eax
   80032b:	83 ec 04             	sub    $0x4,%esp
   80032e:	52                   	push   %edx
   80032f:	50                   	push   %eax
@@ -355,11 +355,11 @@ libmain(int argc, char **argv)
   80033a:	83 c4 10             	add    $0x10,%esp
 				cprintf("# PAGE IN (from disk) = %d, # PAGE OUT (on disk) = %d, # NEW PAGE ADDED (on disk) = %d\n", myEnv->nPageIn, myEnv->nPageOut,myEnv->nNewPageAdded);
   80033d:	a1 20 30 80 00       	mov    0x803020,%eax
-  800342:	8b 88 bc 05 00 00    	mov    0x5bc(%eax),%ecx
+  800342:	8b 88 c0 05 00 00    	mov    0x5c0(%eax),%ecx
   800348:	a1 20 30 80 00       	mov    0x803020,%eax
-  80034d:	8b 90 b8 05 00 00    	mov    0x5b8(%eax),%edx
+  80034d:	8b 90 bc 05 00 00    	mov    0x5bc(%eax),%edx
   800353:	a1 20 30 80 00       	mov    0x803020,%eax
-  800358:	8b 80 b4 05 00 00    	mov    0x5b4(%eax),%eax
+  800358:	8b 80 b8 05 00 00    	mov    0x5b8(%eax),%eax
   80035e:	51                   	push   %ecx
   80035f:	52                   	push   %edx
   800360:	50                   	push   %eax
@@ -370,7 +370,7 @@ libmain(int argc, char **argv)
 			//cprintf("Num of freeing scarce memory = %d, freeing full working set = %d\n", myEnv->freeingScarceMemCounter, myEnv->freeingFullWSCounter);
 			cprintf("Num of clocks = %d\n", myEnv->nClocks);
   80036e:	a1 20 30 80 00       	mov    0x803020,%eax
-  800373:	8b 80 c0 05 00 00    	mov    0x5c0(%eax),%eax
+  800373:	8b 80 c4 05 00 00    	mov    0x5c4(%eax),%eax
   800379:	83 ec 08             	sub    $0x8,%esp
   80037c:	50                   	push   %eax
   80037d:	68 cc 1f 80 00       	push   $0x801fcc
@@ -4214,93 +4214,97 @@ void sys_env_set_priority(int32 envID, int priority)
 {
   801b11:	55                   	push   %ebp
   801b12:	89 e5                	mov    %esp,%ebp
-  801b14:	83 ec 08             	sub    $0x8,%esp
-	//TODO: [PROJECT'25.IM#4] CPU SCHEDULING - #1 System Calls - Add suitable code here
-	//Your code is here
-	//Comment the following line
-	panic("sys_env_set_priority() is not implemented yet...!!");
-  801b17:	83 ec 04             	sub    $0x4,%esp
-  801b1a:	68 28 25 80 00       	push   $0x802528
-  801b1f:	68 25 01 00 00       	push   $0x125
-  801b24:	68 5b 25 80 00       	push   $0x80255b
-  801b29:	e8 a3 e8 ff ff       	call   8003d1 <_panic>
+	syscall(SYS_env_set_priority, envID, priority, 0, 0, 0);
+  801b14:	8b 55 0c             	mov    0xc(%ebp),%edx
+  801b17:	8b 45 08             	mov    0x8(%ebp),%eax
+  801b1a:	6a 00                	push   $0x0
+  801b1c:	6a 00                	push   $0x0
+  801b1e:	6a 00                	push   $0x0
+  801b20:	52                   	push   %edx
+  801b21:	50                   	push   %eax
+  801b22:	6a 2e                	push   $0x2e
+  801b24:	e8 5b fa ff ff       	call   801584 <syscall>
+  801b29:	83 c4 18             	add    $0x18,%esp
+}
+  801b2c:	90                   	nop
+  801b2d:	c9                   	leave  
+  801b2e:	c3                   	ret    
 
-00801b2e <create_semaphore>:
+00801b2f <create_semaphore>:
 // User-level Semaphore
 
 #include "inc/lib.h"
 
 struct semaphore create_semaphore(char *semaphoreName, uint32 value)
 {
-  801b2e:	55                   	push   %ebp
-  801b2f:	89 e5                	mov    %esp,%ebp
-  801b31:	83 ec 08             	sub    $0x8,%esp
+  801b2f:	55                   	push   %ebp
+  801b30:	89 e5                	mov    %esp,%ebp
+  801b32:	83 ec 08             	sub    $0x8,%esp
 	panic("create_semaphore() is not implemented yet...!!");
-  801b34:	83 ec 04             	sub    $0x4,%esp
-  801b37:	68 6c 25 80 00       	push   $0x80256c
-  801b3c:	6a 07                	push   $0x7
-  801b3e:	68 9b 25 80 00       	push   $0x80259b
-  801b43:	e8 89 e8 ff ff       	call   8003d1 <_panic>
+  801b35:	83 ec 04             	sub    $0x4,%esp
+  801b38:	68 28 25 80 00       	push   $0x802528
+  801b3d:	6a 07                	push   $0x7
+  801b3f:	68 57 25 80 00       	push   $0x802557
+  801b44:	e8 88 e8 ff ff       	call   8003d1 <_panic>
 
-00801b48 <get_semaphore>:
+00801b49 <get_semaphore>:
 }
 struct semaphore get_semaphore(int32 ownerEnvID, char* semaphoreName)
 {
-  801b48:	55                   	push   %ebp
-  801b49:	89 e5                	mov    %esp,%ebp
-  801b4b:	83 ec 08             	sub    $0x8,%esp
+  801b49:	55                   	push   %ebp
+  801b4a:	89 e5                	mov    %esp,%ebp
+  801b4c:	83 ec 08             	sub    $0x8,%esp
 	panic("get_semaphore() is not implemented yet...!!");
-  801b4e:	83 ec 04             	sub    $0x4,%esp
-  801b51:	68 ac 25 80 00       	push   $0x8025ac
-  801b56:	6a 0b                	push   $0xb
-  801b58:	68 9b 25 80 00       	push   $0x80259b
-  801b5d:	e8 6f e8 ff ff       	call   8003d1 <_panic>
+  801b4f:	83 ec 04             	sub    $0x4,%esp
+  801b52:	68 68 25 80 00       	push   $0x802568
+  801b57:	6a 0b                	push   $0xb
+  801b59:	68 57 25 80 00       	push   $0x802557
+  801b5e:	e8 6e e8 ff ff       	call   8003d1 <_panic>
 
-00801b62 <wait_semaphore>:
+00801b63 <wait_semaphore>:
 }
 
 void wait_semaphore(struct semaphore sem)
 {
-  801b62:	55                   	push   %ebp
-  801b63:	89 e5                	mov    %esp,%ebp
-  801b65:	83 ec 08             	sub    $0x8,%esp
+  801b63:	55                   	push   %ebp
+  801b64:	89 e5                	mov    %esp,%ebp
+  801b66:	83 ec 08             	sub    $0x8,%esp
 	panic("wait_semaphore() is not implemented yet...!!");
-  801b68:	83 ec 04             	sub    $0x4,%esp
-  801b6b:	68 d8 25 80 00       	push   $0x8025d8
-  801b70:	6a 10                	push   $0x10
-  801b72:	68 9b 25 80 00       	push   $0x80259b
-  801b77:	e8 55 e8 ff ff       	call   8003d1 <_panic>
+  801b69:	83 ec 04             	sub    $0x4,%esp
+  801b6c:	68 94 25 80 00       	push   $0x802594
+  801b71:	6a 10                	push   $0x10
+  801b73:	68 57 25 80 00       	push   $0x802557
+  801b78:	e8 54 e8 ff ff       	call   8003d1 <_panic>
 
-00801b7c <signal_semaphore>:
+00801b7d <signal_semaphore>:
 }
 
 void signal_semaphore(struct semaphore sem)
 {
-  801b7c:	55                   	push   %ebp
-  801b7d:	89 e5                	mov    %esp,%ebp
-  801b7f:	83 ec 08             	sub    $0x8,%esp
+  801b7d:	55                   	push   %ebp
+  801b7e:	89 e5                	mov    %esp,%ebp
+  801b80:	83 ec 08             	sub    $0x8,%esp
 	panic("signal_semaphore() is not implemented yet...!!");
-  801b82:	83 ec 04             	sub    $0x4,%esp
-  801b85:	68 08 26 80 00       	push   $0x802608
-  801b8a:	6a 15                	push   $0x15
-  801b8c:	68 9b 25 80 00       	push   $0x80259b
-  801b91:	e8 3b e8 ff ff       	call   8003d1 <_panic>
+  801b83:	83 ec 04             	sub    $0x4,%esp
+  801b86:	68 c4 25 80 00       	push   $0x8025c4
+  801b8b:	6a 15                	push   $0x15
+  801b8d:	68 57 25 80 00       	push   $0x802557
+  801b92:	e8 3a e8 ff ff       	call   8003d1 <_panic>
 
-00801b96 <semaphore_count>:
+00801b97 <semaphore_count>:
 }
 
 int semaphore_count(struct semaphore sem)
 {
-  801b96:	55                   	push   %ebp
-  801b97:	89 e5                	mov    %esp,%ebp
+  801b97:	55                   	push   %ebp
+  801b98:	89 e5                	mov    %esp,%ebp
 	return sem.semdata->count;
-  801b99:	8b 45 08             	mov    0x8(%ebp),%eax
-  801b9c:	8b 40 10             	mov    0x10(%eax),%eax
+  801b9a:	8b 45 08             	mov    0x8(%ebp),%eax
+  801b9d:	8b 40 10             	mov    0x10(%eax),%eax
 }
-  801b9f:	5d                   	pop    %ebp
-  801ba0:	c3                   	ret    
-  801ba1:	66 90                	xchg   %ax,%ax
-  801ba3:	90                   	nop
+  801ba0:	5d                   	pop    %ebp
+  801ba1:	c3                   	ret    
+  801ba2:	66 90                	xchg   %ax,%ax
 
 00801ba4 <__udivdi3>:
   801ba4:	55                   	push   %ebp

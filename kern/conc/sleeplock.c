@@ -26,7 +26,6 @@ void init_sleeplock(struct sleeplock* lk, char* name)
 
 void acquire_sleeplock(struct sleeplock* lk)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #4 SLEEP LOCK - acquire_sleeplock
 		//Acquire the internal spinlock to protect the 'locked' flag
 	acquire_kspinlock(&(lk->lk));
 
@@ -45,7 +44,6 @@ void acquire_sleeplock(struct sleeplock* lk)
 
 void release_sleeplock(struct sleeplock* lk)
 {
-	//TODO: [PROJECT'25.IM#5] KERNEL PROTECTION: #5 SLEEP LOCK - release_sleeplock
 		//Acquire the internal spinlock
 	acquire_kspinlock(&(lk->lk));
 

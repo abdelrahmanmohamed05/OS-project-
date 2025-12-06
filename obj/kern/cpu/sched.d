@@ -9,6 +9,7 @@ obj/kern/cpu/sched.o: kern/cpu/sched.c kern/cpu/sched.h \
  kern/mem/../tests/../conc/kspinlock.h kern/cpu/kclock.h \
  kern/mem/boot_memory_manager.h kern/mem/paging_helpers.h \
  kern/mem/working_set_manager.h kern/mem/chunk_operations.h \
- kern/tests/utilities.h kern/cmd/command_prompt.h inc/disk.h \
- kern/conc/channel.h kern/conc/kspinlock.h kern/conc/sleeplock.h \
- kern/conc/ksemaphore.h kern/cpu/cpu.h kern/cpu/picirq.h
+ kern/mem/paging_helpers.h kern/tests/utilities.h \
+ kern/cmd/command_prompt.h inc/disk.h kern/conc/channel.h \
+ kern/conc/kspinlock.h kern/conc/sleeplock.h kern/conc/ksemaphore.h \
+ kern/cpu/cpu.h kern/cpu/picirq.h

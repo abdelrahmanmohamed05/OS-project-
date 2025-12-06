@@ -235,7 +235,7 @@ void* smalloc(char *sharedVarName, uint32 size, uint8 isWritable)
 	//==============================================================
     uint32 req = ROUNDUP(size, PAGE_SIZE);
 
-    
+
     int exactIdx = -1;
     int worstIdx = -1;
     uint32 worstSize = 0;
@@ -538,7 +538,6 @@ void *realloc(void *virtual_address, uint32 new_size)
 //	the delete_shared_object() function is empty, make sure to implement it.
 void sfree(void* virtual_address)
 {
-	//TODO: [PROJECT'25.BONUS#5] EXIT #2 - sfree
 	//Your code is here
 	uint32 va = (uint32)virtual_address;
 	if (va == 0) return;

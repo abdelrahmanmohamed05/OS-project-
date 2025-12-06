@@ -14,7 +14,6 @@
 //==============================================
 // [1] INITIALIZE KERNEL HEAP:
 //==============================================
-//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #0 kheap_init [GIVEN]
 //Remember to initialize locks (if any)
 void kheap_init()
 {
@@ -58,7 +57,6 @@ void return_page(void* va)
 //===================================
 void* kmalloc(unsigned int size)
 {
-	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #1 kmalloc
 #if USE_KHEAP
 	// [1] Block Allocator (sizes <= 2KB)
 	if (size <= DYN_ALLOC_MAX_BLOCK_SIZE)
@@ -129,7 +127,6 @@ void* kmalloc(unsigned int size)
 //=================================
 void kfree(void* virtual_address)
 {
-	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #2 kfree
 #if USE_KHEAP
 	uint32 va = (uint32)virtual_address;
 
@@ -175,7 +172,6 @@ void kfree(void* virtual_address)
 //=================================
 unsigned int kheap_virtual_address(unsigned int physical_address)
 {
-	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #3 kheap_virtual_address
 
 #if USE_KHEAP
 	struct FrameInfo* ptr_frame_info = to_frame_info(physical_address);
@@ -197,7 +193,6 @@ unsigned int kheap_virtual_address(unsigned int physical_address)
 //=================================
 unsigned int kheap_physical_address(unsigned int virtual_address)
 {
-	//TODO: [PROJECT'25.GM#2] KERNEL HEAP - #4 kheap_physical_address
 
 #if USE_KHEAP
 	uint32* ptr_page_table = NULL;
