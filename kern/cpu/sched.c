@@ -6,6 +6,7 @@
 #include <kern/trap/trap.h>
 #include <kern/mem/kheap.h>
 #include <kern/mem/memory_manager.h>
+#include <kern/mem/paging_helpers.h>
 #include <kern/tests/utilities.h>
 #include <kern/cmd/command_prompt.h>
 #include <kern/cpu/cpu.h>
@@ -401,8 +402,6 @@ void clock_interrupt_handler(struct Trapframe* tf)
 //	  (Automatically Called Every Quantum in case of LRU Time Approx)
 //===================================================================
 
-extern int pt_get_page_permissions(uint32 *pgdir, uint32 va);
-extern void pt_set_page_permissions(uint32 *pgdir, uint32 va, int set_flags, int clear_flags);
 
 void update_WS_time_stamps()
 {
