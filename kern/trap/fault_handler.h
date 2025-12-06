@@ -45,7 +45,7 @@ void setPageReplacmentAlgorithmCLOCK();
 void setPageReplacmentAlgorithmFIFO();
 void setPageReplacmentAlgorithmModifiedCLOCK();
 /*2018*/void setPageReplacmentAlgorithmDynamicLocal();
-/*2021*/void setPageReplacmentAlgorithmNchanceCLOCK();
+/*2021*/void setPageReplacmentAlgorithmNchanceCLOCK(int PageWSMaxSweeps);
 /*2024*/void setFASTNchanceCLOCK(bool fast);
 /*2025*/void setPageReplacmentAlgorithmOPTIMAL();
 

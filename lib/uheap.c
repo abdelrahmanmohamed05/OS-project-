@@ -520,7 +520,7 @@ void *realloc(void *virtual_address, uint32 new_size)
 	void* newptr = malloc(new_size);
 	if (newptr == NULL)
 		return NULL;
-	sys_move_user_mem(virtual_address, newptr, oldsz < req ? oldsz : req);
+    sys_move_user_mem((uint32)va, (uint32)newptr, oldsz < req ? oldsz : req);
 	free(virtual_address);
 	return newptr;
 }

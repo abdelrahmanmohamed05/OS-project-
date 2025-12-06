@@ -52,7 +52,7 @@ int cut_paste_pages(uint32* page_directory, uint32 source_va, uint32 dest_va, ui
 		uint32 spte = spt[PTX(sva)];
 		if ((spte & PERM_PRESENT) != PERM_PRESENT)
 			return -1;
-		struct FrameInfo* fi = get_frame_info(page_directory, sva);
+        struct FrameInfo* fi = get_frame_info(page_directory, sva, &spt);
 		if (fi == NULL)
 			return -1;
 		uint32 perms = spte & 0xFFF;
@@ -102,11 +102,11 @@ int copy_paste_chunk(uint32* page_directory, uint32 source_va, uint32 dest_va, u
 		uint32 daddr = dva + i*PAGE_SIZE;
 		uint32* spt = NULL; get_page_table(page_directory, saddr, &spt);
 		uint32* dpt = NULL; if (get_page_table(page_directory, daddr, &dpt) == TABLE_NOT_EXIST) dpt = create_page_table(page_directory, daddr);
-		struct FrameInfo* sfi = get_frame_info(page_directory, saddr);
+        struct FrameInfo* sfi = get_frame_info(page_directory, saddr, &spt);
 		if (sfi == NULL)
 			return -1;
 		uint32 spermsUser = spt ? (spt[PTX(saddr)] & PERM_USER) : PERM_USER;
-		struct FrameInfo* dfi = get_frame_info(page_directory, daddr);
+        struct FrameInfo* dfi = get_frame_info(page_directory, daddr, &dpt);
 		if (dfi == NULL)
 		{
 			if (allocate_frame(&dfi) == E_NO_MEM || dfi == NULL)
@@ -150,7 +150,8 @@ int share_chunk(uint32* page_directory, uint32 source_va,uint32 dest_va, uint32 
 	{
 		uint32 saddr = sva + i*PAGE_SIZE;
 		uint32 daddr = dva + i*PAGE_SIZE;
-		struct FrameInfo* fi = get_frame_info(page_directory, saddr);
+        uint32* spt = NULL;
+        struct FrameInfo* fi = get_frame_info(page_directory, saddr, &spt);
 		if (fi == NULL)
 			return -1;
 		uint32* dpt = NULL; if (get_page_table(page_directory, daddr, &dpt) == TABLE_NOT_EXIST) dpt = create_page_table(page_directory, daddr);
@@ -205,7 +206,8 @@ uint32 calculate_free_space(uint32* page_directory, uint32 sva, uint32 eva)
 	uint32 cnt = 0;
 	for (uint32 addr = start; addr < end; addr += PAGE_SIZE)
 	{
-		struct FrameInfo* fi = get_frame_info(page_directory, addr);
+        uint32* pt = NULL;
+        struct FrameInfo* fi = get_frame_info(page_directory, addr, &pt);
 		if (fi == NULL)
 			cnt++;
 	}

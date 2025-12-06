@@ -66,6 +66,7 @@ void * create_user_directory();
 /*2024*/
 void* create_user_kern_stack(uint32* ptr_user_page_directory);
 void delete_user_kern_stack(struct Env* e);
+void cleanup_buffers(struct Env* e);
 //======================
 static int program_segment_alloc_map_copy_workingset(struct Env *e, struct ProgramSegment* seg, uint32* allocated_pages, uint32 remaining_ws_pages, uint32* lastTableNumber);
 void initialize_environment(struct Env* e, uint32* ptr_user_page_directory, unsigned int phys_user_page_directory);
@@ -484,36 +485,66 @@ void env_start(void)
 //
 void env_free(struct Env *e)
 {
-	/*REMOVE THIS LINE BEFORE START CODING*/
-	//return;
-	/**************************************/
-
-	/********DON'T CHANGE THIS LINE***********/
-#if USE_KHEAP //
-	//unshare_pws_at_user_space(e);
-#endif
-	/*****************************************/
-	//TODO: [PROJECT'25.BONUS#4] EXIT #1 & #2 - env_free
-	//Your code is here
-	//Comment the following line
-	panic("env_free() is not implemented yet...!!");
-
-	// [1] [NOT REQUIRED] [If BUFFERING is Enabled] Un-buffer any BUFFERED page belong to this environment from the free/modified lists
-	// [2] Free the pages in the PAGE working set from the main memory
-	// [3] free the PAGE working set itself from the main memory
-	// [4] free the USER HEAP block allocator [if exists]
-	// [5] Free Shared variables [if any]
-	// [6] Free Semaphores [if any]
-	// [7] Free all TABLES from the main memory
-	// [8] free the page DIRECTORY from the main memory
-	// [9] remove this program from the page file
-	/*(ALREADY DONE for you)*/
-	pf_free_env(e); /*(ALREADY DONE for you)*/ // (removes all of the program pages from the page file)
-	/*========================*/
-	// [10] free the environment (return it back to the free environment list)
-	/*(ALREADY DONE for you)*/
-	free_environment(e); /*(ALREADY DONE for you)*/ // (frees the environment (returns it back to the free environment list))
-	/*========================*/
+    #if USE_KHEAP
+    #endif
+    if (isBufferingEnabled()) { cleanup_buffers(e); }
+    for (uint32 pdeno = 0; pdeno < PDX(USER_TOP); pdeno++) {
+        uint32 pde = e->env_page_directory[pdeno];
+        if ((pde & PERM_PRESENT) == 0) continue;
+        uint32 *pt;
+        #if USE_KHEAP
+        pt = (uint32*)kheap_virtual_address(EXTRACT_ADDRESS(pde));
+        #else
+        pt = (uint32*)STATIC_KERNEL_VIRTUAL_ADDRESS(EXTRACT_ADDRESS(pde));
+        #endif
+        for (uint32 pteno = 0; pteno < NPTENTRIES; pteno++) {
+            if ((pt[pteno] & PERM_PRESENT) == 0) continue;
+            uint32 va = (uint32)PGADDR(pdeno, pteno, 0);
+            unmap_frame(e->env_page_directory, va);
+        }
+        del_page_table(e->env_page_directory, (uint32)PGADDR(pdeno, 0, 0));
+    }
+    #if USE_KHEAP
+    if (isPageReplacmentAlgorithmLRU(PG_REP_LRU_LISTS_APPROX)) {
+        while (!LIST_EMPTY(&(e->ActiveList))) {
+            struct WorkingSetElement* w = LIST_FIRST(&(e->ActiveList));
+            LIST_REMOVE(&(e->ActiveList), w);
+            kfree(w);
+        }
+        while (!LIST_EMPTY(&(e->SecondList))) {
+            struct WorkingSetElement* w = LIST_FIRST(&(e->SecondList));
+            LIST_REMOVE(&(e->SecondList), w);
+            kfree(w);
+        }
+    } else {
+        while (!LIST_EMPTY(&(e->page_WS_list))) {
+            struct WorkingSetElement* w = LIST_FIRST(&(e->page_WS_list));
+            if (e->page_last_WS_element == w) e->page_last_WS_element = LIST_NEXT(w);
+            LIST_REMOVE(&(e->page_WS_list), w);
+            kfree(w);
+        }
+    }
+    if (e->prepagedVAs) { kfree(e->prepagedVAs); }
+    #else
+    for (uint32 i = 0; i < e->page_WS_max_size; i++) {
+        e->ptr_pageWorkingSet[i].virtual_address = 0;
+        e->ptr_pageWorkingSet[i].empty = 1;
+        e->ptr_pageWorkingSet[i].time_stamp = 0;
+    }
+    e->page_last_WS_index = 0;
+    #endif
+    delete_user_kern_stack(e);
+    #if USE_KHEAP
+    kfree(e->env_page_directory);
+    #else
+    {
+        struct FrameInfo* dirfi = to_frame_info(e->env_cr3);
+        dirfi->references = 0;
+        free_frame(dirfi);
+    }
+    #endif
+    pf_free_env(e);
+    free_environment(e);
 }
 
 //============================
@@ -901,52 +932,23 @@ uint32 __cur_k_stk = KERNEL_HEAP_START;
 //===========================================================
 void* create_user_kern_stack(uint32* ptr_user_page_directory)
 {
-	//TODO: [PROJECT'25.GM#3] FAULT HANDLER I - #1 create_user_kern_stack
-	//Your code is here
-	//Comment the following line
-	//panic("create_user_kern_stack() is not implemented yet...!!");
-	// Calculate total size needed (stack + guard page)
-	    uint32 total_size = KERNEL_STACK_SIZE + PAGE_SIZE;
-
-	    // Allocate contiguous space in kernel heap
-	    void* stack_space = kmalloc(total_size);
-	    if (stack_space == NULL) {
-	        panic("create_user_kern_stack(): Failed to allocate kernel stack memory");
-	    }
-
-	    // Clear the entire allocated space
-	    memset(stack_space, 0, total_size);
-
-	    // The stack starts after the guard page
-	    void* stack_start = (void*)((uint32)stack_space + PAGE_SIZE);
-
-	    // Map each page of the kernel stack (except guard page)
-	    for (int i = 0; i < (KERNEL_STACK_SIZE / PAGE_SIZE); i++) {
-	        void* current_va = (void*)((uint32)stack_start + i * PAGE_SIZE);
-	        struct FrameInfo* frame = allocate_frame(0);
-
-	        if (frame == NULL) {
-	            panic("create_user_kern_stack(): Failed to allocate frame");
-	        }
-
-	        // Map with kernel permissions (no user access)
-	        int result = map_frame(ptr_user_page_directory, frame, current_va, PERM_PRESENT | PERM_WRITEABLE);
-	        if (result != 0) {
-	            panic("create_user_kern_stack(): Failed to map frame");
-	        }
-		struct Env* curenv;
-	        // Use given function to add this page to page file and initialize by zeros
-	        int pf_result = pf_add_empty_env_page(curenv, (uint32)current_va, 1);
-	        if (pf_result == E_NO_PAGE_FILE_SPACE) {
-	            panic("create_user_kern_stack(): No page file space");
-	        }
-	    }
-
-	    // Return pointer to start of allocated space (including guard page)
-	    return stack_space;
-	//allocate space for the user kernel stack.
-	//remember to leave its bottom page as a GUARD PAGE (i.e. not mapped)
-	//return a pointer to the start of the allocated space (including the GUARD PAGE)
+    uint32 total_size = KERNEL_STACK_SIZE + PAGE_SIZE;
+    void* stack_space = kmalloc(total_size);
+    if (stack_space == NULL) {
+        panic("create_user_kern_stack(): Failed to allocate kernel stack memory");
+    }
+    memset(stack_space, 0, total_size);
+    void* stack_start = (void*)((uint32)stack_space + PAGE_SIZE);
+    for (int i = 0; i < (KERNEL_STACK_SIZE / PAGE_SIZE); i++) {
+        uint32 va = (uint32)stack_start + i * PAGE_SIZE;
+        uint32* kt = NULL;
+        struct FrameInfo* fi = get_frame_info(ptr_page_directory, va, &kt);
+        if (fi == NULL) {
+            panic("create_user_kern_stack(): kernel stack frame not found");
+        }
+        loadtime_map_frame(ptr_user_page_directory, fi, va, PERM_WRITEABLE);
+    }
+    return stack_space;
 }
 
 /*2024*/
@@ -956,16 +958,16 @@ void* create_user_kern_stack(uint32* ptr_user_page_directory)
 void delete_user_kern_stack(struct Env* e)
 {
 #if USE_KHEAP
-	//TODO: [PROJECT'25.BONUS#4] EXIT #1 & #2 - delete_user_kern_stack
-	// Write your code here, remove the panic and write your code
-	panic("delete_user_kern_stack() is not implemented yet...!!");
-
-	//Delete the allocated space for the user kernel stack of this process "e"
-	//remember to delete the bottom GUARD PAGE (i.e. not mapped)
-	//NEED TO FIND THE CORRECT PLACE TO CALL IT!
-	//(can't call it in env_free() since the stack is already in use during the function)
+    void* base = e->kstack;
+    if (base == NULL) return;
+    uint32 start = (uint32)base + PAGE_SIZE;
+    for (int i = 0; i < (KERNEL_STACK_SIZE / PAGE_SIZE); i++) {
+        uint32 va = start + i * PAGE_SIZE;
+        unmap_frame(e->env_page_directory, va);
+    }
+    kfree(base);
 #else
-	panic("KERNEL HEAP is OFF! user kernel stack can't be deleted");
+    panic("KERNEL HEAP is OFF! user kernel stack can't be deleted");
 #endif
 }
 
@@ -1277,5 +1279,3 @@ void cleanup_buffers(struct Env* e)
 	//	struct freeFramesCounters ffc2 = calculate_available_frames();
 	//	cprintf("[%s] aft, mod = %d, fb = %d, fnb = %d\n",curenv->prog_name, ffc2.modified, ffc2.freeBuffered, ffc2.freeNotBuffered);
 }
-
-
