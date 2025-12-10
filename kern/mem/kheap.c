@@ -174,18 +174,35 @@ unsigned int kheap_virtual_address(unsigned int physical_address)
 {
 
 #if USE_KHEAP
-	struct FrameInfo* ptr_frame_info = to_frame_info(physical_address);
-	if (ptr_frame_info->references == 0) return 0;
+    struct FrameInfo* ptr_frame_info = to_frame_info(physical_address);
+    if (ptr_frame_info->references == 0) return 0;
 
-	if (physical_address < (KERNEL_HEAP_START - KERNEL_BASE))
-	{
-		return (uint32)STATIC_KERNEL_VIRTUAL_ADDRESS(physical_address);
-	}
+    // If the physical address lies in the statically-mapped region, use static mapping
+    if (physical_address < (KERNEL_HEAP_START - KERNEL_BASE))
+    {
+        return (uint32)STATIC_KERNEL_VIRTUAL_ADDRESS(physical_address);
+    }
 
-	return 0;
+    // Otherwise, search the kernel heap region to find the VA that maps this PA
+    uint32 frame_num = physical_address >> PGSHIFT;
+    uint32* pt = NULL;
+    for (uint32 va = KERNEL_HEAP_START; va < KERNEL_HEAP_MAX; va += PAGE_SIZE)
+    {
+        int ret = get_page_table(ptr_page_directory, va, &pt);
+        if (ret != TABLE_IN_MEMORY || pt == NULL) continue;
+        uint32 pte = pt[PTX(va)];
+        if ((pte & PERM_PRESENT) == 0) continue;
+        uint32 mapped_frame = pte >> PGSHIFT;
+        if (mapped_frame == frame_num)
+        {
+            return va + (physical_address & 0xFFF);
+        }
+    }
+
+    return 0;
 #else
-	panic("kheap_virtual_address requires USE_KHEAP");
-	return 0;
+    panic("kheap_virtual_address requires USE_KHEAP");
+    return 0;
 #endif
 }
 //=================================

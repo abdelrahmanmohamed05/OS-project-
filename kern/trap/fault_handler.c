@@ -143,13 +143,13 @@ void fault_handler(struct Trapframe *tf)
 
 	//get a pointer to the environment that caused the fault at runtime
 	//cprintf("curenv = %x\n", curenv);
-	struct Env* faulted_env = cur_env;
-	if (faulted_env == NULL)
-	{
-		cprintf("\nFaulted VA = %x\n", fault_va);
-		print_trapframe(tf);
-		panic("faulted env == NULL!");
-	}
+    struct Env* faulted_env = cur_env;
+    if (faulted_env == NULL)
+    {
+        cprintf("\nFaulted VA = %x\n", fault_va);
+        print_trapframe(tf);
+        panic("kernel page fault");
+    }
 	//check the faulted address, is it a table or not ?
 	//If the directory entry of the faulted address is NOT PRESENT then
 	if ( (faulted_env->env_page_directory[PDX(fault_va)] & PERM_PRESENT) != PERM_PRESENT)

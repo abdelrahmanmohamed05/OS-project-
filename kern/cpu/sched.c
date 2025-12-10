@@ -69,19 +69,13 @@ fos_scheduler(void)
 	//This variable should be set to the next environment to be run (if any)
 	struct Env* next_env = NULL;
 
-	//2024: should be outer loop as long as there's any BLOCKED processes.
-	//Ref: xv6-x86 OS
 	int is_any_blocked = 0;
 	do
 	{
-		// Enable interrupts on this processor for a while to allow BLOCKED process to resume
-		// The most recent process to run may have had interrupts turned off; enable them
-		// to avoid a deadlock if all processes are waiting.
+
 		sti();
 
-		// Check ready queue(s) looking for process to run.
-		//cprintf("\n[FOS_SCHEDULER] acquire: lock status before acquire = %d\n", qlock.locked);
-		acquire_kspinlock(&(ProcessQueues.qlock));  //lock: to protect ready & blocked Qs in multi-CPU
+		acquire_kspinlock(&(ProcessQueues.qlock));
 		//cprintf("ACQUIRED\n");
 		do
 		{
